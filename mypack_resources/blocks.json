@@ -1,0 +1,16 @@
+{
+    "format_version": "1.19.30",
+    "mypack:spezi_wool": {
+        "sound": "wool",
+        "textures": {
+            "up": "spezi_wool_top",
+            "down": "spezi_wool_bottom",
+            "north": "spezi_wool_side",
+            "south": "spezi_wool_side",
+            "east": "spezi_wool_side",
+            "west": "spezi_wool_side"
+        },
+        "carried_textures": "spezi_wool_side",
+        "isotropic": true
+    }
+}

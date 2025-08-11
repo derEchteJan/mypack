@@ -1,0 +1,7 @@
+# ignore node module package cache
+node_modules/
+package.json
+package-lock.json
+
+# ignore packaging folder
+package/

@@ -1,0 +1,13 @@
+{ 
+  "format_version": "1.19.30", 
+  "minecraft:block": { 
+    "description": { 
+      "identifier": "mypack:spezi_wool" 
+    }, 
+    "components": {
+        "minecraft:custom_components": [
+            "mypack:spezi_block_component"
+        ]
+    } 
+  } 
+} 
