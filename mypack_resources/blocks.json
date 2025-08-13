@@ -1,7 +1,7 @@
 {
-    "format_version": "1.19.30",
+    "format_version": "1.20.0",
     "mypack:spezi_wool": {
-        "sound": "wool",
+        "sound": "leaves",
         "textures": {
             "up": "spezi_wool_top",
             "down": "spezi_wool_bottom",
@@ -10,7 +10,10 @@
             "east": "spezi_wool_side",
             "west": "spezi_wool_side"
         },
-        "carried_textures": "spezi_wool_side",
-        "isotropic": true
+        "isotropic": false // false: fixed orientation, true: random rotation
+    },
+    "mypack:spezi_wool_stair": {
+        "sound": "leaves"
+        // textures defined in behaviour pack /blocks/spezi_woool_stairs.json
     }
 }

@@ -1,0 +1,36 @@
+{
+    "format_version": "1.21.40",
+    "minecraft:block": {
+        "description": {
+            "identifier": "mypack:spezi_wool_stair",
+            "menu_category": {
+                "category": "construction",
+                "group": "itemGroup.name.custom"
+            }
+        },
+        "components": {
+            "minecraft:geometry": {
+                "identifier": "geometry.mystair"
+                //"culling": "mypack:sushi_cull"
+            },
+            "minecraft:selection_box": {
+                "origin": [ -8, 0, -8 ], "size": [ 16, 16, 16 ]
+            },
+            "minecraft:collision_box": {
+                "origin": [ -8, 0, -8 ], "size": [ 16, 8, 16 ]
+            },
+            "minecraft:material_instances": {
+                "up": {
+                    "texture": "spezi_wool_top"
+                },
+                "down": {
+                    "texture": "spezi_wool_bottom"
+                },
+                "*": {
+                    "texture": "spezi_wool_side"
+                }
+            },
+            "minecraft:custom_components": []
+        }
+    }
+}

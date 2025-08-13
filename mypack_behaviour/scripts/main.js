@@ -1,6 +1,6 @@
 // Run the setup.cmd to install node modules for auto-complete and doc
 
-import { world, system, DisplaySlotId, ObjectiveSortOrder, ScoreboardIdentity } from "@minecraft/server";
+import { world, system, DisplaySlotId, ObjectiveSortOrder, ScoreboardIdentity, DimensionType, BlockInventoryComponent } from "@minecraft/server";
 import { EquipmentSlot, ItemStack, Player, EntityComponentTypes } from '@minecraft/server';
 
 /** logs message to console and world chat
@@ -124,12 +124,18 @@ function setDayTime2() {
 
 import { BlockComponentStepOnEvent } from "@minecraft/server";
 
-/**
+/** SpeziBlockComponent - custom component for the spezi block, overrides event listeners
  * @implements {BlockCustomComponent}
  */
-class SpeziBlockComponent /*implements BlockCustomComponent*/ {
+class SpeziBlockComponent {
+  
+  memberTest = false;
+  
   constructor() {
+    // bind this otherwise this is null in those functions and
+    // internal state cannot be used (works fine though)
     this.onStepOn = this.onStepOn.bind(this);
+    this.onPlayerInteract = this.onPlayerInteract.bind(this);
   }
 
   /** StepOnEvent handler
@@ -140,7 +146,7 @@ class SpeziBlockComponent /*implements BlockCustomComponent*/ {
     if(event.entity !== undefined && event.entity.name !== undefined)
     {
       const bp = event.block.location;
-      chat(event.entity.name + " stepped on the spezi block at " + bp.x + "," + bp.y + "," + bp.z);
+      chat(event.entity.name + " stepped on the spezi block at " + bp.x + "," + bp.y + "," + bp.z + " touched: " + this.memberTest);
     }
     else
     {
@@ -156,8 +162,6 @@ class SpeziBlockComponent /*implements BlockCustomComponent*/ {
    * @returns 
    */
   onPlayerInteract(event, params) {
-
-
     if (event.player === undefined) {
       chat("player interact event (no player)");
       return;
@@ -165,19 +169,108 @@ class SpeziBlockComponent /*implements BlockCustomComponent*/ {
     else {
       const bp = event.block.location;
       chat(event.player.name + " thouched the spezi block at " + bp.x + "," + bp.y + "," + bp.z);
-    }
-    /*
 
-    const blockPos = event.block.location;
-    event.dimension.runCommand('loot spawn ' +
-      blockPos.x + ' ' +
-      blockPos.y + ' ' +
-      blockPos.z + ' loot strawberry_grown_crop'
-    );
-    */
-    //event.block.setPermutation(event.block.permutation.withState('example:crop_age', 0));
+      const aboveBlock = event.block.above(1);
+
+      if(aboveBlock)
+      {
+        chat("above block id: " + aboveBlock.typeId);
+
+        var inventory = aboveBlock.getComponent(BlockInventoryComponent.componentId);
+        if(inventory)
+        {
+          chat("listing inventory of block");
+          listInventory(inventory);
+          registerInventory(inventory);
+        }
+        else
+        {
+          chat("block has no inventory");
+          if(aboveBlock.typeId === "minecraft:cobblestone")
+          {
+            swapContainers(subject1, subject2);
+          }
+        }
+      }
+      else
+      {
+        chat("no above block found");
+      }
+    }
   }
 };
+
+/** list inventory component of a block
+ * @param {BlockInventoryComponent} inventory
+ * @returns
+ */
+function listInventory(inventory)
+{
+  // lists inventory, can be transfered to other chests containers
+  // todo: backup original contents somewhere while special block is underneath, but where? (maybe custom component is capable)
+  var container = inventory.container;
+  if(container)
+  {
+    const containerSize = container.size;
+    if(container.size === 0) chat("container empty");
+    for(var i = 0; i < containerSize; i++)
+    {
+      var item = container.getItem(i);
+      if(item)
+      {
+        chat("item: " + item.typeId + ", count: " + item.amount);
+      }
+    }
+  }
+  else
+  {
+    chat("inventory has no container");
+  }
+}
+
+var subject1;
+var subject2;
+
+/** registers inventory for exchange
+ * @param {BlockInventoryComponent} inventory
+ * @returns
+ */
+function registerInventory(inventory)
+{
+  var container = inventory.container;
+  if(container)
+  {
+    if(subject1 === undefined) { subject1 = container; chat("first container registered"); return; }
+    if(subject2 === undefined) { subject2 = container; chat("first container registered"); return; }
+    else { chat("2 containers already registered"); return; }
+  }
+  else
+  {
+    chat("inventory has no container");
+  }
+}
+
+/**
+ * @param {Container} lhs 
+ * @param {Container} rhs 
+ */
+function swapContainers(lhs, rhs)
+{
+  if(lhs === undefined || rhs === undefined) { chat("please register 2 containers"); return; }
+
+  const size = lhs.size;
+  var transferedCount = 0;
+  for(var i = 0; i < size; i++)
+  {
+    if(lhs.getItem(i))
+    {
+      lhs.transferItem(i, rhs);
+      transferedCount += 1;
+    }
+  }
+  chat("containers swapped (transfered " + transferedCount + " stacks)");
+}
+
 world.beforeEvents.worldInitialize.subscribe(initEvent => {
   initEvent.blockComponentRegistry.registerCustomComponent('mypack:spezi_block_component', new SpeziBlockComponent());
   log("mypack:spezi_block_component registered");

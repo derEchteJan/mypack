@@ -1,13 +1,17 @@
-{ 
-  "format_version": "1.19.30", 
-  "minecraft:block": { 
-    "description": { 
-      "identifier": "mypack:spezi_wool" 
-    }, 
+{
+  "format_version": "1.21.40",
+  "minecraft:block": {
+    "description": {
+      "identifier": "mypack:spezi_wool",
+      "menu_category": {
+        "category": "construction",
+        "group": "itemGroup.name.custom"
+      }
+    },
     "components": {
-        "minecraft:custom_components": [
-            "mypack:spezi_block_component"
-        ]
-    } 
-  } 
-} 
+      "minecraft:custom_components": [
+        "mypack:spezi_block_component"
+      ]
+    }
+  }
+}
