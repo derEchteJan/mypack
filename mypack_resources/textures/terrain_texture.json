@@ -4,17 +4,6 @@
     "padding": 8,
     "num_mip_levels": 4,
     "texture_data": {
-        // define shorthands for texture paths
-        "spezi_wool_top": {
-            "textures": "textures/blocks/mypack/spezi_wool_top"
-        },
-        "spezi_wool_side": {
-            "textures": "textures/blocks/mypack/spezi_wool_side"
-        },
-        "spezi_wool_bottom": {
-            "textures": "textures/blocks/mypack/spezi_wool_bottom"
-        },
-
         "combiner_top": {
             "textures": "textures/blocks/mypack/combiner_top"
         },

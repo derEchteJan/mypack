@@ -11,6 +11,7 @@ function log(message) {
   console.log("CombinerComponent.js: " + message);
   world.sendMessage("CombinerComponent.js: " + message);
 }
+
 function chat(message) {
   world.sendMessage("CombinerComponent.js: " + message);
 }
