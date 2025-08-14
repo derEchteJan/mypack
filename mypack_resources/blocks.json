@@ -1,7 +1,7 @@
 {
     "format_version": "1.20.0",
     "mypack:spezi_wool": {
-        "sound": "leaves",
+        "sound": "cloth",
         "textures": {
             "up": "spezi_wool_top",
             "down": "spezi_wool_bottom",
@@ -10,10 +10,14 @@
             "east": "spezi_wool_side",
             "west": "spezi_wool_side"
         },
-        "isotropic": false // false: fixed orientation, true: random rotation
+        "isotropic": false // isotropic false: fixed orientation, true: random rotation
     },
     "mypack:spezi_wool_stair": {
-        "sound": "leaves"
-        // textures defined in behaviour pack /blocks/spezi_woool_stairs.json
+        "sound": "cloth"
+        // textures defined in behaviour_pack/blocks/spezi_woool_stairs.json to implement custom geometry and rotation
+    },
+    "mypack:combiner": {
+        "sound": "stone"
+        // textures defined in behaviour_pack/blocks/combiner.json to implement custom rotation
     }
 }

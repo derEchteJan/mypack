@@ -1,11 +1,20 @@
 // Run the setup.cmd to install node modules for auto-complete and doc
 
-import { world, system, DisplaySlotId, ObjectiveSortOrder, ScoreboardIdentity, DimensionType, BlockInventoryComponent } from "@minecraft/server";
-import { EquipmentSlot, ItemStack, Player, EntityComponentTypes } from '@minecraft/server';
+import {
+  world,
+  system,
+  DisplaySlotId,
+  ObjectiveSortOrder,
+  BlockInventoryComponent,
+  EquipmentSlot,
+  EntityComponentTypes,
+} from "@minecraft/server";
+
+import CombinerComponent from "./combiner.js"
 
 /** logs message to console and world chat
  * @param {string} message
- */
+*/
 function log(message) {
   console.log("main.js: " + message);
   world.sendMessage("main.js: " + message);
@@ -13,7 +22,7 @@ function log(message) {
 
 /** logs message to world chat
  * @param {string} message
- */
+*/
 function chat(message) {
   world.sendMessage("main.js: " + message);
 }
@@ -89,6 +98,7 @@ function checkPlayersHoldingMap() {
 
 const daylightCycleLen = 24000;
 var daylightCycleScale = 0.25;
+var lastTimeTick = system.currentTick;
 
 /**
  * Adjusts day time to make days longer, needs to run every tick
@@ -106,8 +116,6 @@ function setDayTime() {
   world.setTimeOfDay(time);
 }
 
-var lastTimeTick = system.currentTick;
-
 /**
  * Adjusts day time to make days longer, todo: can run at any interval
  */
@@ -122,14 +130,12 @@ function setDayTime2() {
 
 // ------------------------------------------------------------------------------------------------------------------------------------------
 
-import { BlockComponentStepOnEvent } from "@minecraft/server";
-
 /** SpeziBlockComponent - custom component for the spezi block, overrides event listeners
  * @implements {BlockCustomComponent}
  */
 class SpeziBlockComponent {
   
-  memberTest = false;
+  m_touched = false;
   
   constructor() {
     // bind this otherwise this is null in those functions and
@@ -146,7 +152,7 @@ class SpeziBlockComponent {
     if(event.entity !== undefined && event.entity.name !== undefined)
     {
       const bp = event.block.location;
-      chat(event.entity.name + " stepped on the spezi block at " + bp.x + "," + bp.y + "," + bp.z + " touched: " + this.memberTest);
+      chat(event.entity.name + " stepped on the spezi block at " + bp.x + "," + bp.y + "," + bp.z + " touched: " + this.m_touched);
     }
     else
     {
@@ -162,13 +168,15 @@ class SpeziBlockComponent {
    * @returns 
    */
   onPlayerInteract(event, params) {
+
     if (event.player === undefined) {
       chat("player interact event (no player)");
       return;
     }
+
     else {
-      const bp = event.block.location;
-      chat(event.player.name + " thouched the spezi block at " + bp.x + "," + bp.y + "," + bp.z);
+      //const bp = event.block.location;
+      //chat(event.player.name + " thouched the spezi block at " + bp.x + "," + bp.y + "," + bp.z);
 
       const aboveBlock = event.block.above(1);
 
@@ -273,7 +281,8 @@ function swapContainers(lhs, rhs)
 
 world.beforeEvents.worldInitialize.subscribe(initEvent => {
   initEvent.blockComponentRegistry.registerCustomComponent('mypack:spezi_block_component', new SpeziBlockComponent());
-  log("mypack:spezi_block_component registered");
+  initEvent.blockComponentRegistry.registerCustomComponent('mypack:combiner_component', new CombinerComponent());
+  log("custom components registered");
 });
 
 // ------------------------------------------------------------------------------------------------------------------------------------------
@@ -294,5 +303,5 @@ function mainTick() {
   system.run(mainTick);
 }
 
-system.run(mainTick);
+//system.run(mainTick);
 console.log("main.js: initialized, running mainTick() loop");

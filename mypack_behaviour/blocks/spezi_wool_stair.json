@@ -6,6 +6,12 @@
             "menu_category": {
                 "category": "construction",
                 "group": "itemGroup.name.custom"
+            },
+            "traits": {
+                // define allowed placement orientations
+                "minecraft:placement_direction": {
+                    "enabled_states": [ "minecraft:cardinal_direction" ]
+                }
             }
         },
         "components": {
@@ -31,6 +37,41 @@
                 }
             },
             "minecraft:custom_components": []
-        }
+        },
+        "permutations":
+        [
+            // these need to be defined to make the block
+            // rotate depending on its placement direction (defined above)
+            {
+                // north rotation transform
+                "condition": "query.block_state ('minecraft:cardinal_direction') == 'north'",
+                "components":
+                {
+                    "minecraft:transformation": { "rotation": [0, 0, 0] }
+                }
+            },
+            {
+                // south rotation transform
+                "condition": "query.block_state ('minecraft:cardinal_direction') == 'south'",
+                "components":
+                {
+                    "minecraft:transformation": { "rotation": [0, 180, 0] }
+                }
+            },
+            { // west rotation transform
+                "condition": "query.block_state ('minecraft:cardinal_direction') == 'west'",
+                "components":
+                {
+                    "minecraft:transformation": { "rotation": [0, 90, 0] }
+                }
+            },
+            { // east rotation transform
+                "condition": "query.block_state ('minecraft:cardinal_direction') == 'east'",
+                "components":
+                {
+                    "minecraft:transformation": { "rotation": [0, -90, 0] }
+                }
+            }
+        ]
     }
 }

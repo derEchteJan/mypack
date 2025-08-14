@@ -1,0 +1,84 @@
+{
+    "format_version": "1.21.40",
+    "minecraft:block": {
+        "description": {
+            "identifier": "mypack:combiner",
+            "menu_category": {
+                "category": "construction",
+                "group": "itemGroup.name.custom"
+            },
+            "traits": {
+                // define allowed placement orientations
+                "minecraft:placement_direction": {
+                    "enabled_states": [ "minecraft:facing_direction" ]
+                }
+            }
+        },
+        "components": {
+            // default geometry and material instances need to be
+            // redefined here otherwise transform doesnt work
+            "minecraft:geometry": "minecraft:geometry.full_block",
+            "minecraft:material_instances": {
+                "up": { "texture": "combiner_top" },
+                "down": { "texture": "combiner_top" },
+                "east": { "texture": "combiner_side" },
+                "west": { "texture": "combiner_side" },
+                "*": { "texture": "combiner_front" }
+            },
+            "minecraft:tick": {
+                "interval_range": [ 100, 100 ],
+                "looping": true
+            },
+            "minecraft:custom_components": [
+                "mypack:combiner_component" // event handler component
+            ]
+        },
+        "permutations":
+        [
+            // these need to be defined to make the block
+            // rotate depending on its placement direction (defined above)
+            {
+                "condition": "query.block_state ('minecraft:facing_direction') == 'north'",
+                "components":
+                {
+                    "minecraft:transformation": { "rotation": [0, 0, 0] }
+                }
+            },
+            {
+                "condition": "query.block_state ('minecraft:facing_direction') == 'south'",
+                "components":
+                {
+                    "minecraft:transformation": { "rotation": [0, 180, 0] }
+                }
+            },
+            {
+                "condition": "query.block_state ('minecraft:facing_direction') == 'west'",
+                "components":
+                {
+                    "minecraft:transformation": { "rotation": [0, 90, 0] }
+                }
+            },
+            {
+                "condition": "query.block_state ('minecraft:facing_direction') == 'east'",
+                "components":
+                {
+                    "minecraft:transformation": { "rotation": [0, -90, 0] }
+                }
+            },
+            {
+                "condition": "query.block_state ('minecraft:facing_direction') == 'up'",
+                "components":
+                {
+                    "minecraft:transformation": { "rotation": [90, 0, 0] }
+                }
+            },
+            {
+                "condition": "query.block_state ('minecraft:facing_direction') == 'down'",
+                "components":
+                {
+                    "minecraft:transformation": { "rotation": [-90, 0, 0] }
+                }
+            }
+        ]
+    }
+}
