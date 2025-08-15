@@ -5,6 +5,9 @@ import {
     EntityInventoryComponent,
     Container,
     Block,
+    ItemStack,
+    EntityEquippableComponent,
+    EquipmentSlot,
 } from "@minecraft/server";
 
 function log(message) {
@@ -26,6 +29,7 @@ export default class CombinerComponent {
         this.onPlayerInteract = this.onPlayerInteract.bind(this);
     }
 
+    // unused
     onTick(event)
     {
     }
@@ -49,8 +53,10 @@ export default class CombinerComponent {
             var heldItemName = heldItem.typeId;
             chat("holding: " + heldItemName);
 
-            if(heldItemName === 'minecraft:blaze_rod')
+            if(heldItemName === 'mypack:test')
             {
+                // when holding the test item a viable container block above is registered as target
+
                 var aboveBlock = block.above(1);
                 if(aboveBlock)
                 {
@@ -68,10 +74,20 @@ export default class CombinerComponent {
             }
             else
             {
+                // player is holding any item other than test: transfer it to the target container
+
                 chat("attempting to insert item " + heldItemName);
                 if(s_linkedContainer)
                 {
-                    playerInventory.container.transferItem(selectedSlot, s_linkedContainer);
+                    var addResult = s_linkedContainer.addItem(heldItem);
+                    if(addResult === undefined)
+                    {
+                        var equipment = player.getComponent(EntityEquippableComponent.componentId);
+                        equipment.setEquipment(EquipmentSlot.Mainhand, null);
+                    }
+                    else
+                        chat("container is full!");
+                    //layerInventory.container.transferItem(selectedSlot, s_linkedContainer); <-- removed
                 }
                 else
                 {
@@ -81,16 +97,25 @@ export default class CombinerComponent {
         }
         else
         {
+            // player isnt holding an item: transfer itens from target container to the player
+
             chat("attempting to retrieve item");
             if(s_linkedContainer)
             {
-                for(var i = 0; i < s_linkedContainer.size; i++)
+                for(var i = s_linkedContainer.size - 1; i >= 0; i--)
                 {
                     var itemStack = s_linkedContainer.getItem(i);
                     if(itemStack)
                     {
                         chat("retrieving: " + itemStack.typeId);
-                        s_linkedContainer.transferItem(i, playerInventory.container);
+
+                        var equipment = player.getComponent(EntityEquippableComponent.componentId);
+                        var didSet = equipment.setEquipment(EquipmentSlot.Mainhand, itemStack);
+                        if(didSet)
+                        {
+                            s_linkedContainer.setItem(i, null);
+                        }
+                        //s_linkedContainer.transferItem(i, playerInventory.container); <-- removed
                         break;
                     }
                 }

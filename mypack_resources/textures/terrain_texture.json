@@ -5,6 +5,8 @@
     "num_mip_levels": 4,
     "texture_data": {
         // define shorthands for texture paths
+
+        // Spezi wool / Spezi wool stairs
         "spezi_wool_top": {
             "textures": "textures/blocks/mypack/spezi_wool_top"
         },
@@ -15,6 +17,7 @@
             "textures": "textures/blocks/mypack/spezi_wool_bottom"
         },
 
+        // Combiner
         "combiner_top": {
             "textures": "textures/blocks/mypack/combiner_top"
         },
@@ -23,6 +26,17 @@
         },
         "combiner_front": {
             "textures": "textures/blocks/mypack/combiner_front"
+        },
+
+        // Shared Chest
+        "shared_chest_top": {
+            "textures": "textures/blocks/mypack/shared_chest_top"
+        },
+        "shared_chest_side": {
+            "textures": "textures/blocks/mypack/shared_chest_side"
+        },
+        "shared_chest_front": {
+            "textures": "textures/blocks/mypack/shared_chest_front"
         }
     }
 }

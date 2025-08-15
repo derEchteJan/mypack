@@ -1,0 +1,12 @@
+{
+    "resource_pack_name": "mypack",
+    "texture_name": "atlas.items",
+    "texture_data": {
+        "vacuum_rod": {
+            "textures": "textures/items/vacuum_rod"
+        },
+        "test_item": {
+            "textures": "textures/items/test_item"
+        }
+    }
+}
