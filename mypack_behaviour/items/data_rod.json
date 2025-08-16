@@ -1,0 +1,20 @@
+{
+    "format_version": "1.21.40",
+    "minecraft:item": {
+        "description": {
+            "identifier": "mypack:data_rod"
+        },
+        "components": {
+            "minecraft:max_stack_size": 64,
+            "minecraft:icon": "data_rod",
+            "minecraft:hand_equipped": true,
+            "minecraft:display_name": {
+                "value": "Data Rod"
+            },
+            "minecraft:glint": true,
+            "minecraft:custom_components": [
+                "mypack:data_rod_component"
+            ]
+        }
+    }
+}

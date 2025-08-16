@@ -5,6 +5,12 @@
         "vacuum_rod": {
             "textures": "textures/items/vacuum_rod"
         },
+        "sort_rod": {
+            "textures": "textures/items/sort_rod"
+        },
+        "data_rod": {
+            "textures": "textures/items/data_rod"
+        },
         "test_item": {
             "textures": "textures/items/test_item"
         }

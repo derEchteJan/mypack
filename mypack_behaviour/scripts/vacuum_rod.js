@@ -36,8 +36,6 @@ export default class VacuumRodComponent {
         this.onUse = this.onUse.bind(this);
     }
 
-    m_counter = 0;
-
     /**
      * @param {ItemComponentUseEvent} event 
      * @param {CustomComponentParameters} params 
@@ -47,74 +45,11 @@ export default class VacuumRodComponent {
         if(player.isSneaking)
         {
             this.m_instantVacuum = !this.m_instantVacuum;
-            chat("instantVacuum " + this.m_instantVacuum);
+            chat("m_instantVacuum " + this.m_instantVacuum);
         }
         else
         {
-            //this.Vacuum(event.source);
-
-            const queryOptions = {
-                location: player.location,
-                closest: 1,
-                excludeTypes: [ "minecraft:player" ]
-            }
-            var entities = player.dimension.getEntities(queryOptions);
-            if(entities.length > 0)
-            {
-                var entity = entities.at(0);
-                var name = entity.typeId;
-                if(entity.nameTag)
-                {
-                    name += " '" + entity.nameTag + "'";
-                    
-                }
-                chat(name);
-                var tags = entity.getTags();
-                if(tags.length > 0)
-                {
-                    chat("tags:");
-                    tags.forEach((tag) => {
-                        chat(" - " + tag);
-                    }); 
-                }
-                else
-                {
-                    chat("no tags");
-                }
-                var dynPropIds = entity.getDynamicPropertyIds();
-                if(dynPropIds.length > 0)
-                {
-                    chat("dnamic properties:");
-                    dynPropIds.forEach(dynPropId => {
-                        var dynVal = entity.getDynamicProperty(dynPropId);
-                        chat(" - " + dynPropId + " = " + dynVal);
-                    });
-                }
-                else
-                {
-                    chat("no dynamic properties");
-                }
-
-                var wasCounted = false;
-                if(tags.length === 0)
-                {
-                    entity.addTag("test_counter=" + this.m_counter);
-                    chat("set test_counter tag to " + this.m_counter);
-                    wasCounted = true;
-                }
-
-                if(dynPropIds.length === 0)
-                {
-                    entity.setDynamicProperty("test_counter", this.m_counter);
-                    chat("set test_counter to " + this.m_counter);
-                    wasCounted = true;
-                }
-                if(wasCounted) this.m_counter += 1;
-            }
-            else
-            {
-                chat("found no entities");
-            }
+            this.Vacuum(event.source);
         }
     }
 

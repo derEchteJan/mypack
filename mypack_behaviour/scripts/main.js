@@ -14,6 +14,8 @@ import {
 import CombinerComponent from "./combiner.js"
 import SpeziBlockComponent from "./spezi_block.js"
 import VacuumRodComponent from "./vacuum_rod.js"
+import DataRodComponent from "./data_rod.js"
+import SortRodComponent from "./sort_rod.js"
 import SharedChestComponent from "./shared_chest.js"
 
 // --- UTILS ---
@@ -138,8 +140,28 @@ world.beforeEvents.worldInitialize.subscribe(initEvent => {
   initEvent.blockComponentRegistry.registerCustomComponent('mypack:combiner_component', new CombinerComponent());
   initEvent.blockComponentRegistry.registerCustomComponent('mypack:shared_chest_component', new SharedChestComponent());
   initEvent.itemComponentRegistry.registerCustomComponent('mypack:vacuum_rod_component', new VacuumRodComponent());
+  initEvent.itemComponentRegistry.registerCustomComponent('mypack:data_rod_component', new DataRodComponent());
+  initEvent.itemComponentRegistry.registerCustomComponent('mypack:sort_rod_component', new SortRodComponent());
   log("custom components registered");
 });
+
+//world.afterEvents.dataDrivenEntityTrigger.subscribe(event => {
+//  chat("eventId: " + event.eventId);
+//  var modifiers = event.getModifiers();
+//  for(var modifier of modifiers)
+//  {
+//    var added = modifier.addedComponentGroups;
+//    var removed = modifier.removedComponentGroups;
+//    for(var a of added)
+//    {
+//      chat("added: " + a);
+//    }
+//    for(var r of removed)
+//    {
+//      chat("removed: " + r);
+//    }
+//  }
+//})
 
 // --- MAIN TICK LOOP ---
 

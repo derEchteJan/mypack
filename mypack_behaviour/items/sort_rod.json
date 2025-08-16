@@ -1,0 +1,20 @@
+{
+    "format_version": "1.21.40",
+    "minecraft:item": {
+        "description": {
+            "identifier": "mypack:sort_rod"
+        },
+        "components": {
+            "minecraft:max_stack_size": 64,
+            "minecraft:icon": "sort_rod",
+            "minecraft:hand_equipped": true,
+            "minecraft:display_name": {
+                "value": "Sort Rod"
+            },
+            "minecraft:glint": true,
+            "minecraft:custom_components": [
+                "mypack:sort_rod_component"
+            ]
+        }
+    }
+}
