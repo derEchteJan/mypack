@@ -2,18 +2,18 @@
     "format_version": "1.21.40",
     "minecraft:item": {
         "description": {
-            "identifier": "mypack:vacuum_rod"
+            "identifier": "mypack:pet_rod"
         },
         "components": {
             "minecraft:max_stack_size": 1,
-            "minecraft:icon": "vacuum_rod",
+            "minecraft:icon": "pet_rod",
             "minecraft:hand_equipped": true,
             "minecraft:display_name": {
-                "value": "Vacuum Rod (mypack)"
+                "value": "Pet Rod (mypack)"
             },
             "minecraft:glint": true,
             "minecraft:custom_components": [
-                "mypack:vacuum_rod_component"
+                "mypack:pet_rod_component"
             ]
         }
     }

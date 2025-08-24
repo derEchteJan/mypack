@@ -11,7 +11,7 @@
       },
       "minecraft:hand_equipped": true,
       "minecraft:display_name": {
-        "value": "Test Item"
+        "value": "Test Item (mypack)"
       }
     }
   }

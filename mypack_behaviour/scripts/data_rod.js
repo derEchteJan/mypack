@@ -3,6 +3,8 @@ import {
     ItemComponentUseEvent,
     EntityInventoryComponent,
     EntityItemComponent,
+    Player,
+    Entity
 } from "@minecraft/server";
 
 // --- UTILS ---
@@ -32,12 +34,63 @@ function logErr(message) {
 
 // --- CLASS ---
 
+class Mode
+{
+    static list = "list";                       /**< list all tags and dynmaic properties of nearest non player entity >*/
+    static clear = "clear";                     /**< remove all tags and dynmaic properties from nearest non player entity >*/
+    static clear_pack_only = "clear_pack_only"
+    static set_dummy = "set_dummy"
+    // todos:
+    // clear self..
+    // other players..
+    // highlight
+
+    static _values = [ Mode.list, Mode.clear, Mode.clear_pack_only, Mode.set_dummy ];
+
+    /** returns next enum value, wraps around
+     * @param {string} mode Mode enum value
+     * @returns {string|null} next Mode enum value or null if invalid
+     */
+    static next(mode)
+    {
+        var result = null;
+        for(var i = 0; i < Mode._values.length; i++)
+        {
+            if(Mode._values[i] === mode)
+            {
+                result = Mode._values[(i + 1) % Mode._values.length];
+                break;
+            }
+        }
+        return result;
+    }
+
+    /** returns index of enum value
+     * @param {string} mode Mode enum value
+     * @returns {number} index
+     */
+    static indexOf(mode)
+    {
+        var result = -1;
+        for(var i = 0; i < Mode._values.length; i++)
+        {
+            if(Mode._values[i] === mode)
+            {
+                result = i;
+                break;
+            }
+        }
+        return result;
+    }
+}
+
 /** SortRodComponent
  * @implements {ItemCustomComponent}
  */
 export default class DataRodComponent {
 
-    m_counter = 0;
+    m_mode = Mode._values.at(0);
+    m_dummyCounter = 0;
 
     constructor() {
         this.onUse = this.onUse.bind(this);
@@ -49,60 +102,187 @@ export default class DataRodComponent {
      */
     onUse(event, params) {
         var player = event.source;
+
+        if(player.isSneaking)
+        {
+            this.m_mode = Mode.next(this.m_mode);
+            var idx = Mode.indexOf(this.m_mode);
+            chat("mode: " + this.m_mode + " (" + (idx + 1) + "/" + Mode._values.length + ")" );
+        }
+        else
+        {
+            if(this.m_mode === Mode.list)
+            {
+                var entity = this.GetNearestEntity(player.location, player.dimension);
+                if(!entity) { chat("no entity found"); return; }
+                this.ListData(entity);
+                this.HighlightEntity(entity);
+            }
+            else if(this.m_mode === Mode.clear || this.m_mode === Mode.clear_pack_only)
+            {
+                var entity = this.GetNearestEntity(player.location, player.dimension);
+                if(!entity) { chat("no entity found"); return; }
+                var packOnly = this.m_mode === Mode.clear_pack_only;
+                this.ClearData(entity, packOnly);
+                chat(packOnly ? "cleared pack data" : "cleared data");
+            }
+            else if(this.m_mode === Mode.set_dummy)
+            {
+                var entity = this.GetNearestEntity(player.location, player.dimension);
+                if(!entity) { chat("no entity found"); return; }
+                this.SetDummyData(entity);
+                chat("dummy data set");
+            }
+            else
+            {
+                chat("mode " + this.m_mode + " not implemented");
+            }
+        }
+    }
+
+    /**
+     * @param {Vector3} location
+     * @param {Dimension} dimension
+     * @returns {Entity|null} entity
+     */
+    GetNearestEntity(/*to:*/ location, /*in:*/ dimension)
+    {
+        if(!dimension) dimension = world.getDimension("overworld");
         const queryOptions = {
-            location: player.location,
             closest: 1,
+            location: location,
             excludeTypes: ["minecraft:player"]
         }
-        var entities = player.dimension.getEntities(queryOptions);
-        if (entities.length > 0) {
-            var entity = entities.at(0);
-            var name = entity.typeId;
-            if (entity.nameTag) {
-                name += " '" + entity.nameTag + "'";
-            }
-            chat("closest entity:");
-            chat(name);
-            var tags = entity.getTags();
-            if (tags.length > 0) {
-                chat("tags:");
-                tags.forEach((tag) => {
-                    chat(" - " + tag);
-                });
-            }
-            else {
-                chat("no tags");
-            }
-            var dynPropIds = entity.getDynamicPropertyIds();
-            if (dynPropIds.length > 0) {
-                chat("dnamic properties:");
-                dynPropIds.forEach(dynPropId => {
-                    var dynVal = entity.getDynamicProperty(dynPropId);
-                    chat(" - " + dynPropId + " = " + dynVal);
-                });
-            }
-            else {
-                chat("no dynamic properties");
-            }
+        var entities = dimension.getEntities(queryOptions);
+        return (entities.length > 0) ? entities.at(0) : null;
+    }
 
-            // add some test tags / properties if it doesnt yet have any
+    /**
+     * @param {Entity} entity 
+     */
+    HighlightEntity(entity)
+    {
+        const particle = "minecraft:villager_happy";
+        var pos = entity.location;
+        pos.y += 2.5;
+        var inc = 0.2;
+        entity.dimension.spawnParticle(particle, pos);
+        entity.dimension.spawnParticle(particle, { x: pos.x + inc, y: pos.y + inc, z: pos.z + inc });
+        entity.dimension.spawnParticle(particle, { x: pos.x - inc, y: pos.y + inc, z: pos.z - inc });
+        inc += inc;
+        entity.dimension.spawnParticle(particle, { x: pos.x + inc, y: pos.y + inc, z: pos.z + inc });
+        entity.dimension.spawnParticle(particle, { x: pos.x - inc, y: pos.y + inc, z: pos.z - inc });
+    }
 
-            var wasCounted = false;
-            if (tags.length === 0) {
-                entity.addTag("test_tag_" + this.m_counter);
-                chat("set test_counter tag to " + this.m_counter);
-                wasCounted = true;
-            }
+    /**
+     * @param {Entity} entity 
+     */
+    ListData(entity)
+    {
+        var dataEntity = entity;
+        var typeName = entity.typeId;
+        // values for item entities:
+        var amount = null;
+        var maxAmount = null;
+        var stackable = null;
 
-            if (dynPropIds.length === 0) {
-                entity.setDynamicProperty("test_counter", this.m_counter);
-                chat("set test_counter to " + this.m_counter);
-                wasCounted = true;
-            }
-            if (wasCounted) this.m_counter += 1;
+        var itemComponent = entity.getComponent(EntityItemComponent.componentId);
+        if(itemComponent)
+        {
+            const stack = itemComponent.itemStack;
+            dataEntity = stack; // for item stack entities the persisting data actually lives inside the item stack object
+            typeName += "<" + stack.typeId + ">";
+            amount = stack.amount;
+            maxAmount = stack.maxAmount;
+            stackable = stack.isStackable;
+        }
+
+        chat(typeName);
+
+        if(dataEntity.nameTag && dataEntity.nameTag.length > 0)
+        {
+            chat("nameTag: " + dataEntity.nameTag);
+        }
+
+        if(amount) chat("amount: " + amount);
+        if(maxAmount) chat("maxAmount: " + maxAmount);
+        if(stackable) chat("stackable: " + stackable);
+
+        var tags = dataEntity.getTags();
+        if (tags.length > 0) {
+            chat("tags:");
+            chat("{");
+            tags.forEach((tag) => {
+                chat("   " + tag);
+            });
+            chat("}");
         }
         else {
-            chat("found no entities");
+            chat("tags: {}");
         }
+
+        var dynPropIds = dataEntity.getDynamicPropertyIds();
+        if (dynPropIds.length > 0) {
+            chat("dnamic properties:");
+            chat("{");
+            dynPropIds.forEach(dynPropId => {
+                var dynVal = dataEntity.getDynamicProperty(dynPropId);
+                chat("   " + dynPropId + " = " + dynVal);
+            });
+            chat("}");
+        }
+        else {
+            chat("dnamic properties: {}");
+        }
+        chat("");
+    }
+
+    /**
+     * Clears tags and dynamic propeties given from entity
+     * @param {Entity} entity
+     * @param {boolean} packOnly
+     */
+    ClearData(entity, packOnly)
+    {
+        var dataEntity = entity;
+
+        // todo: abstract out, reduce code duplication
+        var itemComponent = entity.getComponent(EntityItemComponent.componentId);
+        if(itemComponent)
+        {
+            dataEntity = itemComponent.itemStack; // for item stack entities the persisting data actually lives inside the item stack object
+        }
+
+        const prefix = "mypack:"
+
+        if(packOnly)
+        {
+            var propIds = dataEntity.getDynamicPropertyIds();
+            for(var propId of propIds)
+            {
+                if(propId.startsWith(prefix)) dataEntity.setDynamicProperty(propId, null);
+            }
+        }
+        else
+        {
+            dataEntity.clearDynamicProperties();
+        }
+
+        var tags = dataEntity.getTags();
+        for(var tag of tags)
+        {
+            if(!packOnly || tag.startsWith(prefix)) dataEntity.removeTag(tag);
+        }    
+    }
+
+    /**
+     * Adds dummy tag and counter dyn prop to entity
+     * @param {Entity} entity
+     */
+    SetDummyData(entity)
+    {
+        entity.addTag("dummy");
+        entity.setDynamicProperty("dummy", this.m_dummyCounter);
+        this.m_dummyCounter += 1;
     }
 }

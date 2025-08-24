@@ -7,11 +7,33 @@
                 "groups": [
                     {
                         "group_identifier": {
-                            "icon": "minecraft:dirt",
-                            "name": "mypack:ligma"
+                            "icon": "mypack:test",
+                            "name": "mypack:item_group"
                         },
                         "items": [
-                            "mypack:test"
+                            "mypack:test",
+                            "mypack:data_rod",
+                            "mypack:pet_rod",
+                            "mypack:sort_rod",
+                            "mypack:vacuum_rod"
+                        ]
+                    }
+                ]
+            },
+            {
+                "category_name": "construction",
+                "groups": [
+                    {
+                        "group_identifier": {
+                            "icon": "mypack:spezi_wool",
+                            "name": "mypack:item_group"
+                        },
+                        "items": [
+                            "mypack:spezi_wool_stair",
+                            "mypack:spezi_wool",
+                            "mypack:limo_zitrone_wool",
+                            "mypack:limo_orange_wool",
+                            "mypack:combiner"
                         ]
                     }
                 ]

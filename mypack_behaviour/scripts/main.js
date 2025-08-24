@@ -16,6 +16,7 @@ import SpeziBlockComponent from "./spezi_block.js"
 import VacuumRodComponent from "./vacuum_rod.js"
 import DataRodComponent from "./data_rod.js"
 import SortRodComponent from "./sort_rod.js"
+import PetRodComponent from "./pet_rod.js"
 import SharedChestComponent from "./shared_chest.js"
 
 // --- UTILS ---
@@ -86,7 +87,8 @@ function adjustDayTime() {
   world.setTimeOfDay(time);
 }
 
-// --- RESTISTER CUSTOM COMPONENTS ---
+
+// --- GLOBAL EVENT HANDLERS ---
 
 /**
  * @param {EntityLoadAfterEventSignal} event 
@@ -96,15 +98,9 @@ function OnEntityLoad(event)
   var entity = event.entity;
   if(entity)
   {
-    if(entity.typeId === "minecraft:cat")
+    if(entity.getComponent(EntityIsTamedComponent.componentId))
     {
-      var tamedComponent = entity.getComponent(EntityIsTamedComponent.componentId);
-      if(tamedComponent)
-      {
-        chat("tamed cat");
-      }
-      else
-        chat("cat isnt tamed");
+      entity.addTag("mypack:tamed");
     }
   }
 }
@@ -115,16 +111,21 @@ function OnEntityLoad(event)
 function OnPlayerInteractWithEntity(event) {
   var entity = event.target;
   if (entity) {
-    if (entity.typeId === "minecraft:cat") {
-      var tamedComponent = entity.getComponent(EntityIsTamedComponent.componentId);
-      if (tamedComponent)
-        chat("cat is tamed");
-      else
-        chat("cat isnt tamed");
+    var tamed = entity.getComponent(EntityIsTamedComponent.componentId);
+    if (tamed)
+    {
+      entity.addTag("mypack:tamed");
+      if(!entity.hasTag("mypack:companion"))
+      {
+        entity.addTag("mypack:companion");
+        entity.setDynamicProperty("mypack:owner", event.player.name);
+        entity.setDynamicProperty("mypack:stored", false);
+        chat("pet registered");
+      }
     }
-    else chat("interacted with: " + entity.typeId);
+    //else
+    //  chat("not tameable");
   }
-  else chat("interacted undefined target");
 }
 
 world.afterEvents.entityLoad.subscribe((event) => {
@@ -135,13 +136,21 @@ world.afterEvents.playerInteractWithEntity.subscribe((event) => {
   OnPlayerInteractWithEntity(event);
 })
 
+
+// --- REGISTER CUSTOM COMPONENTS ---
+
 world.beforeEvents.worldInitialize.subscribe(initEvent => {
+  // block components
   initEvent.blockComponentRegistry.registerCustomComponent('mypack:spezi_block_component', new SpeziBlockComponent());
   initEvent.blockComponentRegistry.registerCustomComponent('mypack:combiner_component', new CombinerComponent());
   initEvent.blockComponentRegistry.registerCustomComponent('mypack:shared_chest_component', new SharedChestComponent());
+
+  // item components
   initEvent.itemComponentRegistry.registerCustomComponent('mypack:vacuum_rod_component', new VacuumRodComponent());
   initEvent.itemComponentRegistry.registerCustomComponent('mypack:data_rod_component', new DataRodComponent());
   initEvent.itemComponentRegistry.registerCustomComponent('mypack:sort_rod_component', new SortRodComponent());
+  initEvent.itemComponentRegistry.registerCustomComponent('mypack:pet_rod_component', new PetRodComponent());
+
   log("custom components registered");
 });
 
@@ -166,11 +175,16 @@ world.beforeEvents.worldInitialize.subscribe(initEvent => {
 // --- MAIN TICK LOOP ---
 
 function mainTick() {
-  if (system.currentTick % 10 === 0) {
+  var tick = system.currentTick;
+  if (tick % 10 === 0) {
     checkPlayersHoldingMap();
   }
-  if (system.currentTick % 1 === 0) {
+  if (tick % 1 === 0) {
     adjustDayTime(); // TODO: check if gamerule doDaylightCycle == true
+  }
+  if (tick % 40 === 0)
+  {
+    
   }
   system.run(mainTick);
 }

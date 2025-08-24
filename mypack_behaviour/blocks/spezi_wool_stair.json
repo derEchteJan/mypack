@@ -4,8 +4,7 @@
         "description": {
             "identifier": "mypack:spezi_wool_stair",
             "menu_category": {
-                "category": "construction",
-                "group": "itemGroup.name.custom"
+                "category": "construction"
             },
             "traits": {
                 // define allowed placement orientations

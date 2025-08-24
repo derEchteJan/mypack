@@ -4,8 +4,7 @@
         "description": {
             "identifier": "mypack:combiner",
             "menu_category": {
-                "category": "construction",
-                "group": "itemGroup.name.custom"
+                "category": "construction"
             },
             "traits": {
                 // define allowed placement orientations

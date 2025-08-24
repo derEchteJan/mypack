@@ -17,6 +17,28 @@
             "textures": "textures/blocks/mypack/spezi_wool_bottom"
         },
 
+        // Limo zitrone wool
+        "limo_zitrone_wool_top": {
+            "textures": "textures/blocks/mypack/limo_zitrone_wool_top"
+        },
+        "limo_zitrone_wool_side": {
+            "textures": "textures/blocks/mypack/limo_zitrone_wool_side"
+        },
+        "limo_zitrone_wool_bottom": {
+            "textures": "textures/blocks/mypack/limo_zitrone_wool_bottom"
+        },
+
+        // Limo orange wool
+        "limo_orange_wool_top": {
+            "textures": "textures/blocks/mypack/limo_orange_wool_top"
+        },
+        "limo_orange_wool_side": {
+            "textures": "textures/blocks/mypack/limo_orange_wool_side"
+        },
+        "limo_orange_wool_bottom": {
+            "textures": "textures/blocks/mypack/limo_orange_wool_bottom"
+        },
+
         // Combiner
         "combiner_top": {
             "textures": "textures/blocks/mypack/combiner_top"

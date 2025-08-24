@@ -2,15 +2,16 @@
   "format_version": "1.21.40",
   "minecraft:block": {
     "description": {
-      "identifier": "mypack:spezi_wool",
+      "identifier": "mypack:limo_zitrone_wool",
       "menu_category": {
         "category": "construction"
       }
     },
     "components": {
-      "minecraft:custom_components": [
-        "mypack:spezi_block_component"
-      ]
+        "minecraft:destructible_by_mining": {
+            "seconds_to_destroy": 2,
+            "item_specific_speeds": []
+        }
     }
   }
 }

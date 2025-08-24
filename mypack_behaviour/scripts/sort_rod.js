@@ -143,7 +143,7 @@ export default class SortRodComponent {
     /**
      * @param {Player} player 
      * @param {Container} container
-     * @returns {boolean} any items transfered
+     * @returns {boolean} any items were transfered
      */
     TakeFromContainer(player, container)
     {
@@ -208,7 +208,7 @@ export default class SortRodComponent {
     /**
      * @param {Player} player 
      * @param {Container} container 
-     * @returns {boolean} any items transfered
+     * @returns {boolean} any items were transfered
      */
     DepositToContainer(player, container) {
         chat("depositing");

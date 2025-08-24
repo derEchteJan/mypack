@@ -1,5 +1,8 @@
 {
     "format_version": "1.20.0",
+
+    // SPEZI WOOL BLOCKS
+
     "mypack:spezi_wool": {
         "sound": "cloth",
         "textures": {
@@ -12,10 +15,37 @@
         },
         "isotropic": false // isotropic false: fixed orientation, true: random rotation
     },
+    "mypack:limo_zitrone_wool": {
+        "sound": "cloth",
+        "textures": {
+            "up": "limo_zitrone_wool_top",
+            "down": "limo_zitrone_wool_bottom",
+            "north": "limo_zitrone_wool_side",
+            "south": "limo_zitrone_wool_side",
+            "east": "limo_zitrone_wool_side",
+            "west": "limo_zitrone_wool_side"
+        },
+        "isotropic": false
+    },
+    "mypack:limo_orange_wool": {
+        "sound": "cloth",
+        "textures": {
+            "up": "limo_orange_wool_top",
+            "down": "limo_orange_wool_bottom",
+            "north": "limo_orange_wool_side",
+            "south": "limo_orange_wool_side",
+            "east": "limo_orange_wool_side",
+            "west": "limo_orange_wool_side"
+        },
+        "isotropic": false
+    },
     "mypack:spezi_wool_stair": {
         "sound": "cloth"
         // textures defined in behaviour_pack/blocks/spezi_woool_stairs.json to implement custom geometry and rotation
     },
+
+    // OTHER BLOCKS
+
     "mypack:combiner": {
         "sound": "stone"
         // textures defined in behaviour_pack/blocks/combiner.json to implement custom rotation

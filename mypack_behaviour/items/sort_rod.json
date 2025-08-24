@@ -9,7 +9,7 @@
             "minecraft:icon": "sort_rod",
             "minecraft:hand_equipped": true,
             "minecraft:display_name": {
-                "value": "Sort Rod"
+                "value": "Sort Rod (mypack)"
             },
             "minecraft:glint": true,
             "minecraft:custom_components": [

@@ -9,7 +9,7 @@
             "minecraft:icon": "data_rod",
             "minecraft:hand_equipped": true,
             "minecraft:display_name": {
-                "value": "Data Rod"
+                "value": "Data Rod (mypack)"
             },
             "minecraft:glint": true,
             "minecraft:custom_components": [

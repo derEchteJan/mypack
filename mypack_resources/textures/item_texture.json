@@ -11,6 +11,9 @@
         "data_rod": {
             "textures": "textures/items/data_rod"
         },
+        "pet_rod": {
+            "textures": "textures/items/pet_rod"
+        },
         "test_item": {
             "textures": "textures/items/test_item"
         }

@@ -1,4 +1,8 @@
-entity.sample:robot.name=Robot
-item.spawn_egg.entity.sample:robot.name=Spawn Robot
+mypack:item_group=Mypack
 
-tile.mypack:spezi_wool.name=Spezi Wool
+tile.mypack:spezi_wool.name=Spezi Wool (mypack)
+tile.mypack:limo_zitrone_wool.name=Limo Zitrone Wool (mypack)
+tile.mypack:limo_orange_wool.name=Limo Orange Wool (mypack)
+tile.mypack:spezi_wool_stair.name=Spezi Wool Stair (mypack)
+tile.mypack:combiner.name=Combiner (mypack)
+tile.mypack:shared_chest.name=Shared Chest (mypack)

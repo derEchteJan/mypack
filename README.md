@@ -54,3 +54,5 @@ __Featured In:__
 |       | Allow chain armor to be crafted using chains, adjust chain recipe | --          |
 |       | Make armor hidable | --          |
 | Afk | Add custom afk protection command similar to passive mode, active while standing stil | --          |
+| Totems | Rebalance: remove from raid drop tables | --          |
+|        | Rebalance: add evoker respawns to the woodland mansion instead | --          |
