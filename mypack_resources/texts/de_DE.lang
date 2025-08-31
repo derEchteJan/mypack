@@ -1,0 +1,10 @@
+mypack:item_group=Mypack
+
+tile.mypack:spezi_wool.name=Spezi Wolle (mypack)
+tile.mypack:limo_zitrone_wool.name=Limo Zitrone Wolle (mypack)
+tile.mypack:limo_orange_wool.name=Limo Orange Wolle (mypack)
+tile.mypack:spezi_wool_stair.name=Spezi Wolle Treppen (mypack)
+tile.mypack:combiner.name=Kombinierer (mypack)
+tile.mypack:shared_chest.name=Geteilte Kiste (mypack)
+tile.mypack:kennel.name=Zwinger (mypack)
+tile.mypack:sorter.name=Sortierer (mypack)

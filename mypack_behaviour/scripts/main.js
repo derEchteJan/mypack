@@ -6,6 +6,7 @@ import {
   EquipmentSlot,
   EntityComponentTypes,
 
+  EntityLoadAfterEvent,
   EntityLoadAfterEventSignal,
   EntityIsTamedComponent,
   PlayerInteractWithEntityAfterEvent
@@ -18,6 +19,16 @@ import DataRodComponent from "./data_rod.js"
 import SortRodComponent from "./sort_rod.js"
 import PetRodComponent from "./pet_rod.js"
 import SharedChestComponent from "./shared_chest.js"
+import KennelComponent from "./kennel.js"
+import SorterComponent from "./sorter.js"
+
+import Pets from "./handlers/pets.js"
+var pets = new Pets(); /**< pet handler for pet rod and kennel */
+pets.RegisterHandlers();
+
+// no shared instance required as of now
+//import Sorting from "./handlers/sorting.js"
+//var sorting = new Sorting(); /**< item sorting handler for sort rod and sorter block */
 
 // --- UTILS ---
 
@@ -87,56 +98,6 @@ function adjustDayTime() {
   world.setTimeOfDay(time);
 }
 
-
-// --- GLOBAL EVENT HANDLERS ---
-
-/**
- * @param {EntityLoadAfterEventSignal} event 
- */
-function OnEntityLoad(event)
-{
-  var entity = event.entity;
-  if(entity)
-  {
-    if(entity.getComponent(EntityIsTamedComponent.componentId))
-    {
-      entity.addTag("mypack:tamed");
-    }
-  }
-}
-
-/**
- * @param {PlayerInteractWithEntityAfterEvent} event 
- */
-function OnPlayerInteractWithEntity(event) {
-  var entity = event.target;
-  if (entity) {
-    var tamed = entity.getComponent(EntityIsTamedComponent.componentId);
-    if (tamed)
-    {
-      entity.addTag("mypack:tamed");
-      if(!entity.hasTag("mypack:companion"))
-      {
-        entity.addTag("mypack:companion");
-        entity.setDynamicProperty("mypack:owner", event.player.name);
-        entity.setDynamicProperty("mypack:stored", false);
-        chat("pet registered");
-      }
-    }
-    //else
-    //  chat("not tameable");
-  }
-}
-
-world.afterEvents.entityLoad.subscribe((event) => {
-  OnEntityLoad(event);    
-});
-
-world.afterEvents.playerInteractWithEntity.subscribe((event) => {
-  OnPlayerInteractWithEntity(event);
-})
-
-
 // --- REGISTER CUSTOM COMPONENTS ---
 
 world.beforeEvents.worldInitialize.subscribe(initEvent => {
@@ -144,33 +105,17 @@ world.beforeEvents.worldInitialize.subscribe(initEvent => {
   initEvent.blockComponentRegistry.registerCustomComponent('mypack:spezi_block_component', new SpeziBlockComponent());
   initEvent.blockComponentRegistry.registerCustomComponent('mypack:combiner_component', new CombinerComponent());
   initEvent.blockComponentRegistry.registerCustomComponent('mypack:shared_chest_component', new SharedChestComponent());
+  initEvent.blockComponentRegistry.registerCustomComponent('mypack:kennel_component', new KennelComponent(pets));
+  initEvent.blockComponentRegistry.registerCustomComponent('mypack:sorter_component', new SorterComponent());
 
   // item components
   initEvent.itemComponentRegistry.registerCustomComponent('mypack:vacuum_rod_component', new VacuumRodComponent());
   initEvent.itemComponentRegistry.registerCustomComponent('mypack:data_rod_component', new DataRodComponent());
   initEvent.itemComponentRegistry.registerCustomComponent('mypack:sort_rod_component', new SortRodComponent());
-  initEvent.itemComponentRegistry.registerCustomComponent('mypack:pet_rod_component', new PetRodComponent());
+  initEvent.itemComponentRegistry.registerCustomComponent('mypack:pet_rod_component', new PetRodComponent(pets));
 
   log("custom components registered");
 });
-
-//world.afterEvents.dataDrivenEntityTrigger.subscribe(event => {
-//  chat("eventId: " + event.eventId);
-//  var modifiers = event.getModifiers();
-//  for(var modifier of modifiers)
-//  {
-//    var added = modifier.addedComponentGroups;
-//    var removed = modifier.removedComponentGroups;
-//    for(var a of added)
-//    {
-//      chat("added: " + a);
-//    }
-//    for(var r of removed)
-//    {
-//      chat("removed: " + r);
-//    }
-//  }
-//})
 
 // --- MAIN TICK LOOP ---
 
@@ -184,7 +129,7 @@ function mainTick() {
   }
   if (tick % 40 === 0)
   {
-    
+
   }
   system.run(mainTick);
 }

@@ -52,5 +52,11 @@
     },
     "mypack:shared_chest": {
         "sound": "wood"
+    },
+    "mypack:kennel": {
+        "sound": "iron"
+    },
+    "mypack:sorter": {
+        "sound": "stone"
     }
 }

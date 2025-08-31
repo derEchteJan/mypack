@@ -59,6 +59,22 @@
         },
         "shared_chest_front": {
             "textures": "textures/blocks/mypack/shared_chest_front"
+        },
+
+        // Kennel
+        "kennel_top": {
+            "textures": "textures/blocks/mypack/kennel_top"
+        },
+        "kennel_side": {
+            "textures": "textures/blocks/mypack/kennel_side"
+        },
+
+        // Sorter
+        "sorter_top": {
+            "textures": "textures/blocks/mypack/sorter_top"
+        },
+        "sorter_side": {
+            "textures": "textures/blocks/mypack/sorter_side"
         }
     }
 }

@@ -172,7 +172,7 @@ export default class SharedChestComponent {
             else
             {
                 const fillVolume = new BlockVolume(magicCoords, magicCoords);
-                dimension.fillBlocks(fillVolume, "minecraft:chest", null);
+                dimension.fillBlocks(fillVolume, "minecraft:hopper", null);
                 chat("created shared container block");
                 s_linkedContainer = this.GetSharedContainer();
             }
