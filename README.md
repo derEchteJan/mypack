@@ -30,16 +30,20 @@ __Featured In:__
 | -------                | -------                                                                      | ------------:|
 | Show Coordinates       | Maps, Compass and other navitation items show coordinates while holding them | ✅ |
 | Longer Days            | Change daylight cycle time from 10 to 20 min days                            | ✅ |
+|                        | Require less players to sleep                                                | ✅ |
 | Uncraft bamboo         | Make bamboo blocks reversable to bamboo sticks                               | ✅ |
 | Blast Furnace rework   | Enable smelting more blocks in blast furnace                                 | ✅ |
 | Trader rework | Add usefull trades to wandering tarder | -- |
+|               | Moneyboy voicelines | -- |
 | Boats | make easier to pick up | -- |
 | Minecarts | Increase speed, rebalance for < 1024 block transport meta | ✅ |
+|           | make easier to pick up | -- |
 | Bees | Make them not die constantly | -- |
 | Companions | Make them invincible or respawnable | -- |
-|            | Add vacuum to collect items | -- |
+|            | Add vacuum to collect items | ✅ |
+|            | Enable vacuum when companion is nearby | -- |
 | Fix directional textures   | Make certain stuff face a fixed cardinal direction e.g. deepslate | -- |
-| Storage | add shared ender chest with inventory shared between players | -- |
+| Storage | add shared ender chest with inventory shared between players | ✅ |
 |         | increase chest and inventory space by 2x if possible | -- |
 |         | add auto sorting to nearby chests (like terraria) | -- |
 |         | add trash bin slot (like terraria) | -- |
@@ -56,3 +60,7 @@ __Featured In:__
 | Afk | Add custom afk protection command similar to passive mode, active while standing stil | --          |
 | Totems | Rebalance: remove from raid drop tables | --          |
 |        | Rebalance: add evoker respawns to the woodland mansion instead | --          |
+| Reis | Robert will alkohol (brewing stand recipe) nausea + 5% blindness | --          |
+|      | Reis bowl analog zu beetroot stew | --          |
+|      | Reis felder und crop mit half slap | --          |
+

@@ -16,6 +16,12 @@
         },
         "test_item": {
             "textures": "textures/items/test_item"
+        },
+        "hook": {
+            "textures": "textures/items/hook"
+        },
+        "shared_chest_entity2": {
+            "textures": "textures/entity/shared_chest_front"
         }
     }
 }

@@ -60,6 +60,9 @@
         "shared_chest_front": {
             "textures": "textures/blocks/mypack/shared_chest_front"
         },
+        "shared_chest": {
+            "textures": "textures/blocks/mypack/shared_chest"
+        },
 
         // Kennel
         "kennel_top": {

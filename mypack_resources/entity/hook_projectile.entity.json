@@ -1,0 +1,24 @@
+{
+    "format_version": "1.10.0",
+    "minecraft:client_entity": {
+        "description": {
+            "identifier": "mypack:hook_projectile",
+            "materials": {
+                "default": "entity_alphatest"
+            },
+            "textures": {
+                "default": "textures/entity/hook_projectile"
+            },
+            "geometry": {
+                "default": "geometry.hook_projectile"
+            },
+            "render_controllers": [
+                "controller.render.default"
+            ],
+            "spawn_egg": {
+                "base_color": "#DDDDDD",
+                "overlay_color": "#49ff2f"
+            }
+        }
+    }
+}

@@ -4,7 +4,9 @@ import {
     EntityInventoryComponent,
     EntityItemComponent,
     Player,
-    Entity
+    Entity,
+    EntityLeashableComponent,
+    EntityProjectileComponent
 } from "@minecraft/server";
 
 // --- UTILS ---

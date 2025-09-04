@@ -1,0 +1,31 @@
+{
+    "format_version": "1.21.70",
+    "minecraft:entity": {
+        "description": {
+            "identifier": "mypack:hook_ride",
+            "is_spawnable": true,
+            "is_summonable": true
+        },
+        "components": {
+            "minecraft:physics": { "has_collision": true, "has_gravity": false, "push_towards_closest_space": true },
+            //"minecraft:projectile": {},
+            "minecraft:rideable": {
+                "seat_count": 1,
+                "crouching_skip_interact": true,
+                "pull_in_entities": false,
+                "family_types": [
+                    "player"
+                ],
+                "interact_text": "ride this",
+                "seats": [
+                    {
+                        "min_rider_count": 0,
+                        "max_rider_count": 1,
+                        "position": [ 0, 0.6, 0 ]
+                    }
+                ],
+                "on_rider_enter_event": "minecraft:on_passenger_mount"
+            }
+        }
+    }
+}

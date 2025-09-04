@@ -1,0 +1,32 @@
+{
+  "format_version": "1.21.70",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "mypack:hook_anchor",
+      "is_spawnable": true,
+      "is_summonable": true
+    },
+    "components": {
+      "minecraft:physics": {},
+      //"minecraft:projectile": {},
+      "minecraft:rideable": {
+        "seat_count": 1
+      }, // ridable to interact with the start / end point
+      "minecraft:leashable": {
+        "can_be_cut": true,
+        "max_distance": 30,
+        "hard_distance": 25
+        //"on_leash": { "event":"mypack:hook_anchor_leashed", "target":"self" } // aint work
+      },
+      "minecraft:health": { "max": 1, "value": 1 },
+      "minecraft:leashable_to": {},
+      "minecraft:collision_box": {
+        "width": 0.2,
+        "height": 0.2
+      },
+      "minecraft:scale": {
+        "value": 0.6 // visual size
+      }
+    }
+  }
+}
