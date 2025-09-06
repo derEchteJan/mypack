@@ -17,6 +17,17 @@
                             "mypack:sort_rod",
                             "mypack:vacuum_rod"
                         ]
+                    },
+                    {
+                        "group_identifier": {
+                            "icon": "mypack:rice_bowl",
+                            "name": "mypack:rice_group"
+                        },
+                        "items": [
+                            "mypack:rice",
+                            "mypack:rice_seeds",
+                            "mypack:rice_bowl"
+                        ]
                     }
                 ]
             },
@@ -33,7 +44,8 @@
                             "mypack:spezi_wool",
                             "mypack:limo_zitrone_wool",
                             "mypack:limo_orange_wool",
-                            "mypack:combiner"
+                            "mypack:combiner",
+                            "mypack:rice_crop"
                         ]
                     }
                 ]

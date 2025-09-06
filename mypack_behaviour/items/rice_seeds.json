@@ -1,0 +1,19 @@
+{
+    "format_version": "1.21.40",
+    "minecraft:item": {
+        "description": {
+            "identifier": "mypack:rice_seeds"
+        },
+        "components": {
+            "minecraft:icon": "rice_seeds",
+            "minecraft:max_stack_size": 64,
+            "minecraft:display_name": {
+                "value": "Rice Seeds (mypack)"
+            },
+            "minecraft:block_placer": {
+                "block": "mypack:rice_crop"
+            },
+            "minecraft:custom_components": []
+        }
+    }
+}

@@ -1,0 +1,24 @@
+{
+    "format_version": "1.21.40",
+    "minecraft:item": {
+        "description": {
+            "identifier": "mypack:rice"
+        },
+        "components": {
+            "minecraft:icon": "rice",
+            "minecraft:max_stack_size": 16,
+            "minecraft:display_name": {
+                "value": "Rice (mypack)"
+            },
+            "minecraft:food": {
+                "nutrition": 1,
+                "saturation_modifier": 0.6
+            },
+            "minecraft:use_modifiers": {
+                "use_duration": 1.6,
+                "movement_modifier": 0.35
+            },
+            "minecraft:custom_components": []
+        }
+    }
+}

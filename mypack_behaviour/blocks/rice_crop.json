@@ -1,0 +1,76 @@
+{
+    "format_version": "1.21.40",
+    "minecraft:block": {
+        "description": {
+            "identifier": "mypack:rice_crop",
+            "menu_category": {
+                "category": "construction"
+            },
+            "traits": {},
+            "states": {
+                "mypack:crop_age": [ 0, 1, 2, 3, 4 ]
+            }
+        },
+        "components": {
+            "minecraft:geometry": {
+                "identifier": "geometry.rice_crop"
+            },
+            "minecraft:collision_box": false,
+            "minecraft:material_instances": {
+                "*": { "texture": "rice_crop_0", "render_method": "alpha_test" }
+            },
+            "minecraft:selection_box": {
+                "origin": [ -7.5, 0, -7.5 ],
+                "size": [ 15, 8, 15 ]
+            },
+            "minecraft:loot": "loot_tables/blocks/rice_crop.json",
+            "minecraft:placement_filter": {
+                "conditions": [
+                    {
+                        "allowed_faces": [ "up" ],
+                        "block_filter": [ "minecraft:oak_slab" ]
+                    }
+                ]
+            },
+            "tag:minecraft:crop": {},
+            "minecraft:custom_components": [
+                "mypack:rice_crop_component"
+            ]
+        },
+        "permutations": [
+            {
+                "condition": "query.block_state('mypack:crop_age') == 1",
+                "components": {
+                    "minecraft:material_instances": {
+                        "*": { "texture": "rice_crop_1", "render_method": "alpha_test" }
+                    }
+                }
+            },
+            {
+                "condition": "query.block_state('mypack:crop_age') == 2",
+                "components": {
+                    "minecraft:material_instances": {
+                        "*": { "texture": "rice_crop_2", "render_method": "alpha_test" }
+                    }
+                }
+            },
+            {
+                "condition": "query.block_state('mypack:crop_age') == 3",
+                "components": {
+                    "minecraft:material_instances": {
+                        "*": { "texture": "rice_crop_3", "render_method": "alpha_test" }
+                    }
+                }
+            },
+            {
+                "condition": "query.block_state('mypack:crop_age') == 4",
+                "components": {
+                    "minecraft:material_instances": {
+                        "*": { "texture": "rice_crop_4", "render_method": "alpha_test" }
+                    },
+                    "minecraft:loot": "loot_tables/blocks/rice_crop_grown.json"
+                }
+            }
+        ]
+    }
+}

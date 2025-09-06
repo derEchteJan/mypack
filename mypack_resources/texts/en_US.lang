@@ -1,4 +1,5 @@
-mypack:item_group=Mypack
+mypack:item_group=Mypack Items
+mypack:rice_group=Mypack Rice
 
 tile.mypack:spezi_wool.name=Spezi Wool (mypack)
 tile.mypack:limo_zitrone_wool.name=Limo Zitrone Wool (mypack)

@@ -20,8 +20,17 @@
         "hook": {
             "textures": "textures/items/hook"
         },
-        "shared_chest_entity2": {
+        "shared_chest_entity2": { // what even is this?
             "textures": "textures/entity/shared_chest_front"
+        },
+        "rice": {
+            "textures": "textures/items/rice"
+        },
+        "rice_seeds": {
+            "textures": "textures/items/rice_seeds"
+        },
+        "rice_bowl": {
+            "textures": "textures/items/rice_bowl"
         }
     }
 }

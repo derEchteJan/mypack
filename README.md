@@ -63,4 +63,5 @@ __Featured In:__
 | Reis | Robert will alkohol (brewing stand recipe) nausea + 5% blindness | --          |
 |      | Reis bowl analog zu beetroot stew | --          |
 |      | Reis felder und crop mit half slap | --          |
+|      | Racism Hat | --          |
 

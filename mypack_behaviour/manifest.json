@@ -4,7 +4,7 @@
     "name": "mypack",
     "description": "mypack behaviour pack",
     "uuid": "3958f9a2-96e4-4db0-a907-145d065cd7f0",
-    "version": [1, 0, 0],
+    "version": [0, 0, 1],
     "min_engine_version": [1, 16, 0]
   },
   "modules": [
@@ -12,13 +12,13 @@
       "description": "mypack data module",
       "type": "data",
       "uuid": "1b85a99a-bfeb-481d-8a77-b5cda182e7d3",
-      "version": [1, 0, 0]
+      "version": [0, 0, 1]
     },
     {
       "description": "mypack script module",
       "type": "script",
       "uuid": "db068186-8115-4baf-9e29-d411afbdb7c3",
-      "version": [1, 0, 0],
+      "version": [0, 0, 1],
       "entry": "scripts/main.js"
     }
   ],

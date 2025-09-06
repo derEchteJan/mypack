@@ -27,6 +27,7 @@ import PetRodComponent from "./pet_rod.js"
 import SharedChestComponent from "./shared_chest.js"
 import KennelComponent from "./kennel.js"
 import SorterComponent from "./sorter.js"
+import RiceCropComponent from "./block_components/rice_crop_component.js";
 
 import Pets from "./handlers/pets.js"
 var pets = new Pets(); /**< pet handler for pet rod and kennel */
@@ -113,7 +114,8 @@ world.beforeEvents.worldInitialize.subscribe(initEvent => {
   initEvent.blockComponentRegistry.registerCustomComponent('mypack:shared_chest_component', new SharedChestComponent());
   initEvent.blockComponentRegistry.registerCustomComponent('mypack:kennel_component', new KennelComponent(pets));
   initEvent.blockComponentRegistry.registerCustomComponent('mypack:sorter_component', new SorterComponent());
-
+  initEvent.blockComponentRegistry.registerCustomComponent('mypack:rice_crop_component', new RiceCropComponent());
+  
   // item components
   initEvent.itemComponentRegistry.registerCustomComponent('mypack:vacuum_rod_component', new VacuumRodComponent());
   initEvent.itemComponentRegistry.registerCustomComponent('mypack:data_rod_component', new DataRodComponent());

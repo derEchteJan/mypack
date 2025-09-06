@@ -78,6 +78,23 @@
         },
         "sorter_side": {
             "textures": "textures/blocks/mypack/sorter_side"
+        },
+
+        // Rice crop
+        "rice_crop_0": {
+            "textures": "textures/blocks/mypack/rice_crop_0"
+        },
+        "rice_crop_1": {
+            "textures": "textures/blocks/mypack/rice_crop_1"
+        },
+        "rice_crop_2": {
+            "textures": "textures/blocks/mypack/rice_crop_2"
+        },
+        "rice_crop_3": {
+            "textures": "textures/blocks/mypack/rice_crop_3"
+        },
+        "rice_crop_4": {
+            "textures": "textures/blocks/mypack/rice_crop_4"
         }
     }
 }
