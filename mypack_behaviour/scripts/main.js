@@ -28,6 +28,7 @@ import SharedChestComponent from "./shared_chest.js"
 import KennelComponent from "./kennel.js"
 import SorterComponent from "./sorter.js"
 import RiceCropComponent from "./block_components/rice_crop_component.js";
+import FarmlandSlabComponent from "./block_components/farmland_slab_component.js";
 
 import Pets from "./handlers/pets.js"
 var pets = new Pets(); /**< pet handler for pet rod and kennel */
@@ -115,6 +116,7 @@ world.beforeEvents.worldInitialize.subscribe(initEvent => {
   initEvent.blockComponentRegistry.registerCustomComponent('mypack:kennel_component', new KennelComponent(pets));
   initEvent.blockComponentRegistry.registerCustomComponent('mypack:sorter_component', new SorterComponent());
   initEvent.blockComponentRegistry.registerCustomComponent('mypack:rice_crop_component', new RiceCropComponent());
+  initEvent.blockComponentRegistry.registerCustomComponent('mypack:farmland_slab_component', new FarmlandSlabComponent());
   
   // item components
   initEvent.itemComponentRegistry.registerCustomComponent('mypack:vacuum_rod_component', new VacuumRodComponent());
@@ -166,7 +168,8 @@ function SpawnRope(hook_projectile, player) {
   }
 
   var l3 = hook_projectile.getComponent(EntityLeashableComponent.componentId);
-  l3.unleash();
+  if(l3)
+    l3.unleash();
 }
 
 world.afterEvents.entitySpawn.subscribe(event => {
@@ -220,7 +223,7 @@ world.afterEvents.playerButtonInput.subscribe(event =>{
         var rider = ridable.getRiders().at(0);
         if(rider && rider.id === player.id)
         {
-          hookRide.kill();
+          EjectRiderFrom(hookRide);
           break;
         }
       }
@@ -258,7 +261,7 @@ function UpdateHookRides()
 
     if(kill)
     {
-      hookRide.kill();
+      //hookRide.kill(); // MARK JAN: tp and kill delayed to supress sound
       hookRides.splice(i, 1);
       i--;
     }
@@ -278,7 +281,8 @@ function EjectRiderFrom(hookRide)
     if(rider)
     {
       ridable.ejectRider(rider);
-      hookRide.kill();
+      hookRide.teleport({x: 0, y: -63, z: 0});
+      // MARK JAN: tp and kill delayed to supress sound
     }
   }
 }

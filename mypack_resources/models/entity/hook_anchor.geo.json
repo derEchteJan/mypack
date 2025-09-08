@@ -16,7 +16,7 @@
           "pivot": [0, 0, 0]
         },
         {
-          "name": "object",
+          "name": "head",
           "parent": "root",
           "pivot": [0, 0, 0],
           "cubes": [

@@ -1,8 +1,9 @@
 {
-    "format_version": "1.10.0",
+    "format_version": "1.8.0",
     "minecraft:client_entity": {
         "description": {
             "identifier": "mypack:hook_anchor",
+            "min_engine_version": "1.8.0",
             "materials": {
                 "default": "entity"
             },
@@ -15,6 +16,9 @@
             "render_controllers": [
                 "controller.render.default"
             ],
+            //"locators": { // WARUM NIX??
+            //    "lead": { "object": [ 1, 1, 1 ] }
+            //},
             "spawn_egg": {
                 "base_color": "#DDDDDD",
                 "overlay_color": "#2fd4ff"

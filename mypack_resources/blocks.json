@@ -59,8 +59,19 @@
     "mypack:sorter": {
         "sound": "stone"
     },
+
+    // RICE UPDATE
+
     "mypack:rice_crop":
     {
         "sound": "grass"
+    },
+    "mypack:dirt_slab":
+    {
+        "sound": "gravel"
+    },
+    "mypack:farmland_slab":
+    {
+        "sound": "gravel"
     }
 }

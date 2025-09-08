@@ -1,5 +1,5 @@
 {
-    "format_version": "1.21.40",
+    "format_version": "1.21.50",
     "minecraft:block": {
         "description": {
             "identifier": "mypack:shared_chest",
@@ -19,8 +19,14 @@
                 "identifier": "geometry.shared_chest"
             },
             "minecraft:material_instances": {
-                "*": {
-                    "texture": "shared_chest"
+                "*": { "texture": "shared_chest" }
+            },
+            "minecraft:item_visual": {
+                "geometry": {
+                    "identifier": "geometry.shared_chest_in_hand"
+                },
+                "material_instances": {
+                    "*": { "texture": "shared_chest" }
                 }
             },
             "minecraft:selection_box": {

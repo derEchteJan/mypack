@@ -31,6 +31,9 @@
         },
         "rice_bowl": {
             "textures": "textures/items/rice_bowl"
+        },
+        "spear_item": {
+            "textures": "textures/items/spear_item"
         }
     }
 }

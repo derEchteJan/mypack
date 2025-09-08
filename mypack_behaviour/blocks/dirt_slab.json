@@ -1,0 +1,36 @@
+{
+    "format_version": "1.21.60",
+    "minecraft:block": {
+        "description": {
+            "identifier": "mypack:dirt_slab",
+            "menu_category": {
+                "category": "construction"
+            },
+            "traits": {
+            }
+        },
+        "components": {
+            "minecraft:geometry": {
+                "identifier": "geometry.slab"
+            },
+            "minecraft:selection_box": {
+                "origin": [ -8, 0, -8 ], "size": [ 16, 8, 16 ]
+            },
+            "minecraft:collision_box": {
+                "origin": [ -8, 0, -8 ], "size": [ 16, 8, 16 ]
+            },
+            "minecraft:material_instances": {
+                "*": {
+                    "texture": "dirt"
+                }
+            },
+            "minecraft:liquid_detection":
+            {
+                "can_contain_liquid": true,
+
+                "detection_rules": [{"liquid_type":"water", "on_liquid_touches":"no_reaction"}]
+            },
+            "minecraft:custom_components": []
+        }
+    }
+}

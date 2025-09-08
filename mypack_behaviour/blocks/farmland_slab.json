@@ -1,0 +1,61 @@
+{
+    "format_version": "1.21.60",
+    "minecraft:block": {
+        "description": {
+            "identifier": "mypack:farmland_slab",
+            "menu_category": {
+                "category": "construction"
+            },
+            "states": {
+                "mypack:is_wet": [ false, true ]
+            },
+            "traits": {
+            }
+        },
+        "components": {
+            "minecraft:geometry": {
+                "identifier": "geometry.mypack.farmland_slab"
+            },
+            "minecraft:selection_box": {
+                "origin": [ -8, 0, -8 ], "size": [ 16, 7, 16 ]
+            },
+            "minecraft:collision_box": {
+                "origin": [ -8, 0, -8 ], "size": [ 16, 7, 16 ]
+            },
+            "minecraft:material_instances": {
+                "up": { "texture": "farmland" },
+                "*": { "texture": "dirt" }
+            },
+            "minecraft:liquid_detection":
+            {
+                // make waterloggable
+                "can_contain_liquid": true,
+                "detection_rules": [{ "liquid_type": "water", "on_liquid_touches": "no_reaction" }]
+            },
+            "minecraft:custom_components": [
+                "mypack:farmland_slab_component"
+            ]
+        },
+        "permutations":
+        [
+            {
+                // MARK JAN: TODO - find out how to detect waterlogging to update is_wet state
+                // permutation changes texture when farmland is wet
+                "condition": "query.block_state('mypack:is_wet') == true",
+                "components": {
+                    "minecraft:material_instances": {
+                        "up": { "texture": "mud" // MARK JAN: TODO - find out how to reference farmland_wet from vanilla farmland texture set
+                        },
+                        "*": { "texture": "dirt" }
+                    }
+                }
+            }
+        ],
+        "events":
+        [
+            {
+                
+            }
+        ]
+    }
+}
