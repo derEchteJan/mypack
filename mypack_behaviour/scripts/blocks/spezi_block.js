@@ -34,6 +34,8 @@ function chat(message) {
  */
 export default class SpeziBlockComponent {
 
+    static componentId = "mypack:spezi_block_component"
+
     m_touched = false;
     m_container1 = null;
     m_container2 = null;

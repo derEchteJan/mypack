@@ -95,6 +95,10 @@
         },
         "rice_crop_4": {
             "textures": "textures/blocks/mypack/rice_crop_4"
+        },
+        "farmland_dry":
+        {
+            "textures": "textures/blocks/mypack/farmland_dry"
         }
     }
 }

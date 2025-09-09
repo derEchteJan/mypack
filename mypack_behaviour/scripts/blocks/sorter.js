@@ -4,7 +4,7 @@ import {
     BlockComponentPlayerInteractEvent,
 } from "@minecraft/server";
 
-import Sorting from "./handlers/sorting.js"
+import Sorting from "../handlers/sorting.js"
 
 // --- UTILS ---
 

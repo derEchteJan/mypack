@@ -18,25 +18,26 @@ import {
   EntityInventoryComponent
 } from "@minecraft/server";
 
-import CombinerComponent from "./combiner.js"
-import SpeziBlockComponent from "./spezi_block.js"
-import VacuumRodComponent from "./vacuum_rod.js"
-import DataRodComponent from "./data_rod.js"
-import SortRodComponent from "./sort_rod.js"
-import PetRodComponent from "./pet_rod.js"
-import SharedChestComponent from "./shared_chest.js"
-import KennelComponent from "./kennel.js"
-import SorterComponent from "./sorter.js"
-import RiceCropComponent from "./block_components/rice_crop_component.js";
-import FarmlandSlabComponent from "./block_components/farmland_slab_component.js";
+// block custom component classes
+import CombinerComponent from "./blocks/combiner.js"
+import FarmlandSlabComponent from "./blocks/farmland_slab.js"
+import KennelComponent from "./blocks/kennel.js"
+import RiceCropComponent from "./blocks/rice_crop.js"
+import SharedChestComponent from "./blocks/shared_chest.js"
+import SorterComponent from "./blocks/sorter.js"
+import SpeziBlockComponent from "./blocks/spezi_block.js"
 
+// item custom component classes
+import VacuumRodComponent from "./items/vacuum_rod.js"
+import DataRodComponent from "./items/data_rod.js"
+import SortRodComponent from "./items/sort_rod.js"
+import PetRodComponent from "./items/pet_rod.js"
+
+// common logic / handler classes
 import Pets from "./handlers/pets.js"
-var pets = new Pets(); /**< pet handler for pet rod and kennel */
-pets.RegisterHandlers();
+import Daytime from "./handlers/daytime.js"
+import ShowCoords from "./handlers/show_coords.js"
 
-// no shared instance required as of now
-//import Sorting from "./handlers/sorting.js"
-//var sorting = new Sorting(); /**< item sorting handler for sort rod and sorter block */
 
 // --- UTILS ---
 
@@ -55,122 +56,57 @@ function chat(message) {
   world.sendMessage("script: " + message);
 }
 
-// --- FUNCTIONS ---
 
-/** checks for players holding a map or compass and
- *  displays their coordinates as an action bar title
- */
-function checkPlayersHoldingMap() {
-  world.getPlayers().forEach((player) => {
+// --- REGISTER EVENT HANDLERS ---
 
-    const equipmentComponent = player.getComponent(EntityComponentTypes.Equippable);
-    if (equipmentComponent) {
-      var mainHandEquipment = equipmentComponent.getEquipment(EquipmentSlot.Mainhand);
-      if (mainHandEquipment) {
-        if (mainHandEquipment.typeId === "minecraft:filled_map"
-          || mainHandEquipment.typeId === "minecraft:compass"
-          || mainHandEquipment.typeId === "minecraft:lodestone_compass"
-          || mainHandEquipment.typeId === "minecraft:recovery_compass") {
-          //log(player.name + " has map in hand");
-          var px = Math.round(player.location.x);
-          var py = Math.round(player.location.y);
-          var pz = Math.round(player.location.z);
-          var cordsText = "x:" + px + " y:" + py + " z:" + pz;
-          world.getDimension("overworld").runCommandAsync("title \"" + player.name + "\" actionbar " + cordsText);
-        }
-      }
-    }
+var daytime = new Daytime(); // daytime handler to elongate days
+daytime.RegisterHandlers();
 
-  });
-}
+var pets = new Pets(); // pet handler for pet rod and kennel
+pets.RegisterHandlers();
 
-const daylightCycleLen = 24000;
-var daylightCycleScale = 0.25;
-var lastTimeTick = system.currentTick;
+var showCoords = new ShowCoords(); // displays coordinates when holding maps etc.
+showCoords.RegisterHandlers();
 
-/**
- * Adjusts day time to make days longer, needs to run every tick
- */
-function adjustDayTime() {
-  var absTime = world.getAbsoluteTime();
-  var time = world.getTimeOfDay()
-  if (system.currentTick % 4 === 0) {
-  }
-  else {
-    absTime = (absTime - 1);
-    time = (time - 1);
-    if(time === -1)
-      time = daylightCycleLen - 1;
-  }
-  world.setAbsoluteTime(absTime);
-  world.setTimeOfDay(time);
-}
 
 // --- REGISTER CUSTOM COMPONENTS ---
 
 world.beforeEvents.worldInitialize.subscribe(initEvent => {
-  // block components
-  initEvent.blockComponentRegistry.registerCustomComponent('mypack:spezi_block_component', new SpeziBlockComponent());
-  initEvent.blockComponentRegistry.registerCustomComponent('mypack:combiner_component', new CombinerComponent());
-  initEvent.blockComponentRegistry.registerCustomComponent('mypack:shared_chest_component', new SharedChestComponent());
-  initEvent.blockComponentRegistry.registerCustomComponent('mypack:kennel_component', new KennelComponent(pets));
-  initEvent.blockComponentRegistry.registerCustomComponent('mypack:sorter_component', new SorterComponent());
-  initEvent.blockComponentRegistry.registerCustomComponent('mypack:rice_crop_component', new RiceCropComponent());
-  initEvent.blockComponentRegistry.registerCustomComponent('mypack:farmland_slab_component', new FarmlandSlabComponent());
+  // block custom components
+  const blockComponents = initEvent.blockComponentRegistry;
+  blockComponents.registerCustomComponent('mypack:spezi_block_component', new SpeziBlockComponent());
+  blockComponents.registerCustomComponent('mypack:combiner_component', new CombinerComponent());
+  blockComponents.registerCustomComponent('mypack:shared_chest_component', new SharedChestComponent());
+  blockComponents.registerCustomComponent('mypack:kennel_component', new KennelComponent(pets));
+  blockComponents.registerCustomComponent('mypack:sorter_component', new SorterComponent());
+  blockComponents.registerCustomComponent('mypack:rice_crop_component', new RiceCropComponent());
+  blockComponents.registerCustomComponent('mypack:farmland_slab_component', new FarmlandSlabComponent());
   
-  // item components
-  initEvent.itemComponentRegistry.registerCustomComponent('mypack:vacuum_rod_component', new VacuumRodComponent());
-  initEvent.itemComponentRegistry.registerCustomComponent('mypack:data_rod_component', new DataRodComponent());
-  initEvent.itemComponentRegistry.registerCustomComponent('mypack:sort_rod_component', new SortRodComponent());
-  initEvent.itemComponentRegistry.registerCustomComponent('mypack:pet_rod_component', new PetRodComponent(pets));
+  // item custom components
+  const itemComponents = initEvent.itemComponentRegistry;
+  itemComponents.registerCustomComponent('mypack:vacuum_rod_component', new VacuumRodComponent());
+  itemComponents.registerCustomComponent('mypack:data_rod_component', new DataRodComponent());
+  itemComponents.registerCustomComponent('mypack:sort_rod_component', new SortRodComponent());
+  itemComponents.registerCustomComponent('mypack:pet_rod_component', new PetRodComponent(pets));
 
   log("custom components registered");
 });
 
-import { DataDrivenEntityTriggerAfterEvent } from "@minecraft/server";
 
+// --- FUNCTIONS ---
+
+// -> TODO move to optional handler classes
+
+var hookRides = world.getDimension("overworld").getEntities(null); hookRides.length = 0; // trick to type hint on array
+var hookPaths = [{ start: { x: 0, y: 0, z: 0 }, end: { x: 0, y: 0, z: 0 } }]; hookPaths.length = 0;
 
 world.afterEvents.projectileHitBlock.subscribe(event => {
-
-  //chat("projectile hit block: " + event.projectile.typeId + ", source: " + (event.source === undefined ? "undefined" : event.source.typeId));
-
   if(event.projectile.typeId === "mypack:hook_projectile")
   {
-    //chat("hook landed");
-
+    // hook landed
     SpawnRope(event.projectile, event.source);
   }
 });
-
-/** Spawns rope between player and hook_projectile after
- *  the hook has landed on a block
- * @param {Entity} hook_projectile 
- * @param {Player} player 
- */
-function SpawnRope(hook_projectile, player) {
-  
-  if(!player) return;
-  if(hook_projectile.hasTag("mypack:hook_landed")) return;
-  hook_projectile.addTag("mypack:hook_landed");
-
-  const loc1 = player.location;
-  var anchor1 = player.dimension.spawnEntity("mypack:hook_anchor", loc1);
-
-  const loc2 = hook_projectile.location;
-  var anchor2 = player.dimension.spawnEntity("mypack:hook_anchor", loc2);
-
-  var leashable1 = anchor1.getComponent(EntityLeashableComponent.componentId);
-  var leashable2 = anchor2.getComponent(EntityLeashableComponent.componentId);
-
-  if(leashable1 && leashable2)
-  {
-    leashable1.leashTo(anchor2);
-  }
-
-  var l3 = hook_projectile.getComponent(EntityLeashableComponent.componentId);
-  if(l3)
-    l3.unleash();
-}
 
 world.afterEvents.entitySpawn.subscribe(event => {
   if(event.entity.typeId === "minecraft:arrow")
@@ -231,8 +167,85 @@ world.afterEvents.playerButtonInput.subscribe(event =>{
   }
 });
 
-var hookRides = world.getDimension("overworld").getEntities(null); hookRides.length = 0; // trick to type hint on array
-var hookPaths = [{ start: { x: 0, y: 0, z: 0 }, end: { x: 0, y: 0, z: 0 } }]; hookPaths.length = 0;
+world.afterEvents.playerInteractWithEntity.subscribe(event =>
+{
+  //chat(event.player.name + " interacted with " + event.target.typeId);
+  var entity = event.target;
+
+  if(entity.typeId === "mypack:hook_ride")
+  {
+    var ridable = entity.getComponent(EntityRideableComponent.componentId);
+    if(ridable)
+    {
+      var rider = ridable.getRiders().at(0);
+      if(rider)
+      {
+        entity.addTag("mypack:hook_ride_used");
+      }
+    }
+  }
+  if(entity.typeId === "mypack:hook_anchor")
+  {
+    // start hook ride
+    var spawnLoc = entity.location;
+    spawnLoc.y += 0.5;
+    var spawnedRide = entity.dimension.spawnEntity("mypack:hook_ride", spawnLoc);
+    if(spawnedRide)
+    {
+      var ridable = spawnedRide.getComponent(EntityRideableComponent.componentId);
+      if(ridable)
+      {
+        ridable.addRider(event.player);
+        event.player.addTag("mypack:riding_hook_ride");
+        spawnedRide.addTag("mypack:hook_ride_used");
+        hookRides.push(spawnedRide);
+      }
+      var leashable = entity.getComponent(EntityLeashableComponent.componentId);
+      if(leashable.isLeashed && leashable.leashHolder)
+      {
+        var start = leashable.leashHolder;
+        var end = entity;
+        spawnedRide.pathEntities = { start: start, end: end };
+        spawnedRide.pathDirection = 1; // can be 1, 0 or -1
+        spawnedRide.rider = event.player;
+      }
+    }
+  }
+  else
+  {
+    chat("interacted with " + entity.typeId);
+  }
+});
+
+/** Spawns rope between player and hook_projectile after
+ *  the hook has landed on a block
+ * @param {Entity} hook_projectile 
+ * @param {Player} player 
+ */
+function SpawnRope(hook_projectile, player) {
+  
+  if(!player) return;
+  if(hook_projectile.hasTag("mypack:hook_landed")) return;
+  hook_projectile.addTag("mypack:hook_landed");
+
+  const loc1 = player.location;
+  var anchor1 = player.dimension.spawnEntity("mypack:hook_anchor", loc1);
+
+  const loc2 = hook_projectile.location;
+  var anchor2 = player.dimension.spawnEntity("mypack:hook_anchor", loc2);
+
+  var leashable1 = anchor1.getComponent(EntityLeashableComponent.componentId);
+  var leashable2 = anchor2.getComponent(EntityLeashableComponent.componentId);
+
+  if(leashable1 && leashable2)
+  {
+    leashable1.leashTo(anchor2);
+  }
+
+  var l3 = hook_projectile.getComponent(EntityLeashableComponent.componentId);
+  if(l3)
+    l3.unleash();
+}
 
 function UpdateHookRides()
 {
@@ -398,81 +411,25 @@ function UpdateHookRidesMovement()
   }
 }
 
-world.afterEvents.playerInteractWithEntity.subscribe(event =>
-{
-  //chat(event.player.name + " interacted with " + event.target.typeId);
-  var entity = event.target;
-
-  if(entity.typeId === "mypack:hook_ride")
-  {
-    var ridable = entity.getComponent(EntityRideableComponent.componentId);
-    if(ridable)
-    {
-      var rider = ridable.getRiders().at(0);
-      if(rider)
-      {
-        entity.addTag("mypack:hook_ride_used");
-      }
-    }
-  }
-  if(entity.typeId === "mypack:hook_anchor")
-  {
-    // start hook ride
-    var spawnLoc = entity.location;
-    spawnLoc.y += 0.5;
-    var spawnedRide = entity.dimension.spawnEntity("mypack:hook_ride", spawnLoc);
-    if(spawnedRide)
-    {
-      var ridable = spawnedRide.getComponent(EntityRideableComponent.componentId);
-      if(ridable)
-      {
-        ridable.addRider(event.player);
-        event.player.addTag("mypack:riding_hook_ride");
-        spawnedRide.addTag("mypack:hook_ride_used");
-        hookRides.push(spawnedRide);
-      }
-      var leashable = entity.getComponent(EntityLeashableComponent.componentId);
-      if(leashable.isLeashed && leashable.leashHolder)
-      {
-        var start = leashable.leashHolder;
-        var end = entity;
-        spawnedRide.pathEntities = { start: start, end: end };
-        spawnedRide.pathDirection = 1; // can be 1, 0 or -1
-        spawnedRide.rider = event.player;
-      }
-    }
-  }
-  else
-  {
-    chat("interacted with " + entity.typeId);
-  }
-});
 
 // --- MAIN TICK LOOP ---
 
 function mainTick() {
   var tick = system.currentTick;
-  if (tick % 10 === 0) {
-    checkPlayersHoldingMap();
-  }
-  if (tick % 1 === 0) {
-    adjustDayTime(); // TODO: check if gamerule doDaylightCycle == true
-  }
-  if (tick % 20 === 0)
-  {
-    UpdateHookRides();
-  }
-  if(tick % 5 === 0)
-  {
-    UpdateHookRidesMovement();
-  }
+  if(tick % 20 === 0) UpdateHookRides();
+  if(tick % 5  === 0) UpdateHookRidesMovement();
   system.run(mainTick);
 }
 
-// run commands
+// start running main tick loop
+system.run(mainTick);
+
+
+// --- GAMERULES AND COMMANDS ---
+
 world.getDimension("overworld").runCommand("gamerule playerssleepingpercentage 1");
 
-// run tick loop
-system.run(mainTick);
+
+// --- SUCCESSFULL INIT ---
 
 console.log("main.js initialized");

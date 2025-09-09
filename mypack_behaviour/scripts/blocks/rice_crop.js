@@ -1,8 +1,6 @@
 import {
     system,
     world,
-    Block,
-    BlockVolume,
     BlockComponentRandomTickEvent,
     BlockComponentPlayerInteractEvent
 } from "@minecraft/server";
@@ -34,10 +32,10 @@ function logErr(message) {
 
 // --- CLASS ---
 
-/** FarmlandSlabComponent
+/** RiceCropComponent
  * @implements { BlockCustomComponent }
  */
-export default class FarmlandSlabComponent {
+export default class RiceCropComponent {
 
     constructor() {
         this.onRandomTick = this.onRandomTick.bind(this);
@@ -53,39 +51,25 @@ export default class FarmlandSlabComponent {
         this.onRandomTick(event, params);
     }
 
-    /** OnRandomTick handler
+    /** PlayerInteractEvent handler
      * @param {BlockComponentRandomTickEvent} event
      * @param {CustomComponentParameters} params
      * @returns
      */
     onRandomTick(event, params) {
+        const  pos = event.block.location;
 
-        const pos = event.block.location;
-        const block = event.block;
+        // Grow the rice crop by incrementing its block permutation state
 
-        //chat("random tick");
+        const age = event.block.permutation.getState('mypack:crop_age');
 
-        const wet = event.block.permutation.getState('mypack:is_wet');
+        //chat("age is: " + age);
 
-        chat("farmland at " + pos.x + "," + pos.z + " is wet: " + (wet === true ? "true" : "false"));
+        if (age === undefined || typeof age !== 'number') return;
+        if (age === 4) return; // fully grown
 
-        const from = { x: pos.x - 3, y: pos.y, z: pos.z - 3 };
-        const to = { x: pos.x + 3, y: pos.y, z: pos.z + 3 };
-        var blockVolume = new BlockVolume(from, to);
-        var blockFilter =
-        {
-            includeTypes: [ "water" ]
-        }
-        var waterNearby = block.dimension.containsBlock(blockVolume, blockFilter, false);
-        if(waterNearby && wet === false)
-        {
-            chat("water nearby");
-            block.setPermutation(block.permutation.withState('mypack:is_wet', true));
-        }
-        else if(!waterNearby && wet === true)
-        {
-            chat("no water nearby");
-            block.setPermutation(block.permutation.withState('mypack:is_wet', false));
-        }
+        //chat("growing crop at " + pos.x + "," + pos.z + " to crop_age=" + (age + 1));
+
+        event.block.setPermutation(event.block.permutation.withState('mypack:crop_age', (age + 1)));
     }
 }

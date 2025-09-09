@@ -8,7 +8,7 @@ import {
     EntityItemComponent,
 } from "@minecraft/server";
 
-import Pets from "./handlers/pets.js";
+import Pets from "../handlers/pets.js";
 
 // --- UTILS ---
 

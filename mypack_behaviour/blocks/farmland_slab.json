@@ -23,7 +23,7 @@
                 "origin": [ -8, 0, -8 ], "size": [ 16, 7, 16 ]
             },
             "minecraft:material_instances": {
-                "up": { "texture": "farmland" },
+                "up": { "texture": "farmland_dry", "index": 1 }, // MARK JAN: TODO - find out how to reference "farmland_dry" from vanilla texture set "farmland"
                 "*": { "texture": "dirt" }
             },
             "minecraft:liquid_detection":
@@ -40,12 +40,13 @@
         [
             {
                 // MARK JAN: TODO - find out how to detect waterlogging to update is_wet state
+                //                  for now the block just checks for nearby full water blocks instead
+
                 // permutation changes texture when farmland is wet
                 "condition": "query.block_state('mypack:is_wet') == true",
                 "components": {
                     "minecraft:material_instances": {
-                        "up": { "texture": "mud" // MARK JAN: TODO - find out how to reference farmland_wet from vanilla farmland texture set
-                        },
+                        "up": { "texture": "farmland" }, 
                         "*": { "texture": "dirt" }
                     }
                 }

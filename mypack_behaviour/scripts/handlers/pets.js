@@ -35,7 +35,8 @@ function logErr(message) {
 }
 
 
-/** Pets handler class
+/** Pets handler class,
+ *  For pet_rod and kennel block
  */
 export default class Pets {
 

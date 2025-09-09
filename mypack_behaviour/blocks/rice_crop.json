@@ -17,7 +17,7 @@
             },
             "minecraft:collision_box": false,
             "minecraft:material_instances": {
-                "*": { "texture": "rice_crop_0", "render_method": "alpha_test" }
+                "*": { "texture": "rice_crop_0", "render_method": "alpha_test_single_sided_to_opaque" }
             },
             "minecraft:selection_box": {
                 "origin": [ -7.5, 0, -7.5 ],
@@ -42,7 +42,7 @@
                 "condition": "query.block_state('mypack:crop_age') == 1",
                 "components": {
                     "minecraft:material_instances": {
-                        "*": { "texture": "rice_crop_1", "render_method": "alpha_test" }
+                        "*": { "texture": "rice_crop_1", "render_method": "alpha_test_single_sided_to_opaque" }
                     }
                 }
             },
@@ -50,7 +50,7 @@
                 "condition": "query.block_state('mypack:crop_age') == 2",
                 "components": {
                     "minecraft:material_instances": {
-                        "*": { "texture": "rice_crop_2", "render_method": "alpha_test" }
+                        "*": { "texture": "rice_crop_2", "render_method": "alpha_test_single_sided_to_opaque" }
                     }
                 }
             },
@@ -58,7 +58,7 @@
                 "condition": "query.block_state('mypack:crop_age') == 3",
                 "components": {
                     "minecraft:material_instances": {
-                        "*": { "texture": "rice_crop_3", "render_method": "alpha_test" }
+                        "*": { "texture": "rice_crop_3", "render_method": "alpha_test_single_sided_to_opaque" }
                     }
                 }
             },
@@ -66,7 +66,7 @@
                 "condition": "query.block_state('mypack:crop_age') == 4",
                 "components": {
                     "minecraft:material_instances": {
-                        "*": { "texture": "rice_crop_4", "render_method": "alpha_test" }
+                        "*": { "texture": "rice_crop_4", "render_method": "alpha_test_single_sided_to_opaque" }
                     },
                     "minecraft:loot": "loot_tables/blocks/rice_crop_grown.json"
                 }
