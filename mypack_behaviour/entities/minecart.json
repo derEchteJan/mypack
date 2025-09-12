@@ -16,7 +16,7 @@
         ]
       },
       "minecraft:collision_box": {
-        "width": 0.98,
+        "width": 0.7, // default: 0.98, reduced to avoid collisions at altered higher speeds
         "height": 0.7
       },
       "minecraft:rail_movement": {

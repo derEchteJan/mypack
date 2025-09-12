@@ -3,8 +3,11 @@ import {
     ItemComponentUseEvent,
     EntityInventoryComponent,
     EntityItemComponent,
+    ItemComponentUseOnEvent,
     Player,
     Entity,
+    Block,
+    ItemStack,
     EntityLeashableComponent,
     EntityProjectileComponent
 } from "@minecraft/server";
@@ -42,14 +45,11 @@ class Mode
     static clear = "clear";                     /**< remove all tags and dynmaic properties from nearest non player entity >*/
     static clear_pack_only = "clear_pack_only"
     static set_dummy = "set_dummy"
-    // todos:
-    // clear self..
-    // other players..
-    // highlight
 
     static _values = [ Mode.list, Mode.clear, Mode.clear_pack_only, Mode.set_dummy ];
 
-    /** returns next enum value, wraps around
+    /**
+     * Returns next enum value, wraps around
      * @param {string} mode Mode enum value
      * @returns {string|null} next Mode enum value or null if invalid
      */
@@ -67,7 +67,8 @@ class Mode
         return result;
     }
 
-    /** returns index of enum value
+    /**
+     * Returns index of enum value
      * @param {string} mode Mode enum value
      * @returns {number} index
      */
@@ -96,6 +97,36 @@ export default class DataRodComponent {
 
     constructor() {
         this.onUse = this.onUse.bind(this);
+        this.onUseOn = this.onUseOn.bind(this);
+    }
+
+    /**
+     * @param {Block|ItemStack|undefined} object 
+     * @returns {string}
+     */
+    getKey(object)
+    {
+        if(object instanceof Block)
+        {
+            return "minecraft:block";
+        }
+        if(object instanceof ItemStack)
+        {
+            return "minecraft:item_stack";
+        }
+        return "" + object;
+    }
+
+    /**
+     * OnUseOnEvent handler - called when item is used on a block
+     * @param {ItemComponentUseOnEvent} event
+     * @param {CustomComponentParameters} params
+     */
+    onUseOn(event, params)
+    {
+        const block = event.block;
+        const item = block.getItemStack(1, true);
+        chat("blockKey: " + this.getKey(block) + " itemKey: " + this.getKey(item));
     }
 
     /**

@@ -16,6 +16,10 @@
                 "down": { "texture": "sorter_top" },
                 "*": { "texture": "sorter_side" }
             },
+            "minecraft:tick": {
+                "interval_range": [ 21, 21 ],
+                "looping": true
+            },
             "minecraft:destructible_by_mining": {
                 "seconds_to_destroy": 4,
                 "item_specific_speeds": [

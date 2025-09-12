@@ -3,7 +3,7 @@
   "header": {
     "name": "mypack",
     "description": "mypack behaviour pack",
-    "uuid": "3958f9a2-96e4-4db0-a907-145d065cd7f0",
+    "uuid": "3958f9a2-96e4-4db0-a907-145d065cd7fa",
     "version": [0, 0, 1],
     "min_engine_version": [1, 16, 0]
   },
@@ -11,13 +11,13 @@
     {
       "description": "mypack data module",
       "type": "data",
-      "uuid": "1b85a99a-bfeb-481d-8a77-b5cda182e7d3",
+      "uuid": "1b85a99a-bfeb-481d-8a77-b5cda182e7da",
       "version": [0, 0, 1]
     },
     {
       "description": "mypack script module",
       "type": "script",
-      "uuid": "db068186-8115-4baf-9e29-d411afbdb7c3",
+      "uuid": "db068186-8115-4baf-9e29-d411afbdb7cc",
       "version": [0, 0, 1],
       "entry": "scripts/main.js"
     }
@@ -26,6 +26,10 @@
       {
         "module_name":"@minecraft/server",
         "version":"1.19.0"
+      },
+      {
+        "module_name": "@minecraft/server-ui",
+        "version": "1.3.0"
       }
    ]
 }
