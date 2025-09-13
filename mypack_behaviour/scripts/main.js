@@ -19,7 +19,6 @@ import {
 } from "@minecraft/server";
 
 // block custom component classes
-import CombinerComponent from "./blocks/combiner.js"
 import FarmlandSlabComponent from "./blocks/farmland_slab.js"
 import KennelComponent from "./blocks/kennel.js"
 import RiceCropComponent from "./blocks/rice_crop.js"
@@ -75,7 +74,6 @@ world.beforeEvents.worldInitialize.subscribe(initEvent => {
   // block custom components
   const blockComponents = initEvent.blockComponentRegistry;
   blockComponents.registerCustomComponent('mypack:spezi_block_component', new SpeziBlockComponent());
-  blockComponents.registerCustomComponent('mypack:combiner_component', new CombinerComponent());
   blockComponents.registerCustomComponent('mypack:shared_chest_component', new SharedChestComponent());
   blockComponents.registerCustomComponent('mypack:kennel_component', new KennelComponent(pets));
   blockComponents.registerCustomComponent('mypack:sorter_component', new SorterComponent());

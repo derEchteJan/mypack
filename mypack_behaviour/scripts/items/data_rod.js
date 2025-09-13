@@ -12,6 +12,10 @@ import {
     EntityProjectileComponent
 } from "@minecraft/server";
 
+import { ActionFormData } from "@minecraft/server-ui";
+
+import utils from "../utils.js";
+
 // --- UTILS ---
 
 /** logs message to console and world chat
@@ -37,85 +41,43 @@ function logErr(message) {
     world.sendMessage("error: " + message);
 }
 
-// --- CLASS ---
+// --- CLASSES ---
 
 class Mode
 {
-    static list = "list";                       /**< list all tags and dynmaic properties of nearest non player entity >*/
-    static clear = "clear";                     /**< remove all tags and dynmaic properties from nearest non player entity >*/
-    static clear_pack_only = "clear_pack_only"
-    static set_dummy = "set_dummy"
+    static list            = "list";            // list all tags and dynmaic properties of nearest non player entity
+    static clear           = "clear";           // remove all tags and dynmaic properties from nearest non player entity
+    static clear_pack_only = "clear_pack_only";
+    static set_dummy       = "set_dummy";
 
-    static _values = [ Mode.list, Mode.clear, Mode.clear_pack_only, Mode.set_dummy ];
-
-    /**
-     * Returns next enum value, wraps around
-     * @param {string} mode Mode enum value
-     * @returns {string|null} next Mode enum value or null if invalid
-     */
-    static next(mode)
-    {
-        var result = null;
-        for(var i = 0; i < Mode._values.length; i++)
-        {
-            if(Mode._values[i] === mode)
-            {
-                result = Mode._values[(i + 1) % Mode._values.length];
-                break;
-            }
-        }
-        return result;
-    }
+    static _prop_id      = "mypack:data_rod_mode";
+    static _values       = [ Mode.list,   Mode.clear,       Mode.clear_pack_only,     Mode.set_dummy ];
+    static _displayNames = [ "List Data", "Clear All Data", "Clear Data (Pack Only)", "Set Dummy Property" ];
 
     /**
-     * Returns index of enum value
-     * @param {string} mode Mode enum value
-     * @returns {number} index
+     * @param {string} mode
+     * @returns {string}
      */
-    static indexOf(mode)
+    static DisplayName(mode)
     {
-        var result = -1;
-        for(var i = 0; i < Mode._values.length; i++)
-        {
-            if(Mode._values[i] === mode)
-            {
-                result = i;
-                break;
-            }
-        }
-        return result;
+        if(!this._values.includes(mode)) return "";
+        var idx = this._values.indexOf(mode);
+        return this._displayNames[idx];
     }
 }
 
-/** SortRodComponent
+/** 
+ * DataRodComponent
  * @implements {ItemCustomComponent}
  */
 export default class DataRodComponent {
 
-    m_mode = Mode._values.at(0);
-    m_dummyCounter = 0;
+    m_dummyCounter = 0
 
     constructor() {
         this.onUse = this.onUse.bind(this);
         this.onUseOn = this.onUseOn.bind(this);
-    }
-
-    /**
-     * @param {Block|ItemStack|undefined} object 
-     * @returns {string}
-     */
-    getKey(object)
-    {
-        if(object instanceof Block)
-        {
-            return "minecraft:block";
-        }
-        if(object instanceof ItemStack)
-        {
-            return "minecraft:item_stack";
-        }
-        return "" + object;
-    }
+    }f
 
     /**
      * OnUseOnEvent handler - called when item is used on a block
@@ -125,8 +87,12 @@ export default class DataRodComponent {
     onUseOn(event, params)
     {
         const block = event.block;
-        const item = block.getItemStack(1, true);
-        chat("blockKey: " + this.getKey(block) + " itemKey: " + this.getKey(item));
+        const player = event.source;
+        if(!player.isSneaking) return;
+        const mode = this.GetMode(player);
+        if(mode !== Mode.list) return;
+        const rawMessage = { rawtext: [ { text: "§7Block: §3'" }, { translate: utils.tr(block) }, { text: "'§r" } ] };
+        player.sendMessage(rawMessage);
     }
 
     /**
@@ -134,43 +100,103 @@ export default class DataRodComponent {
      * @param {CustomComponentParameters} params 
      */
     onUse(event, params) {
-        var player = event.source;
+        const player = event.source;
 
-        if(player.isSneaking)
+        if(!player.isSneaking)
         {
-            this.m_mode = Mode.next(this.m_mode);
-            var idx = Mode.indexOf(this.m_mode);
-            chat("mode: " + this.m_mode + " (" + (idx + 1) + "/" + Mode._values.length + ")" );
+            this.PresentModeForm(player);
         }
         else
         {
-            if(this.m_mode === Mode.list)
+            const mode = this.GetMode(player);
+            const entity = this.GetNearestEntity(player.location, player.dimension);
+
+            if(mode === Mode.list)
             {
-                var entity = this.GetNearestEntity(player.location, player.dimension);
                 if(!entity) { chat("no entity found"); return; }
-                this.ListData(entity);
+                this.ListData(entity, player);
                 this.HighlightEntity(entity);
             }
-            else if(this.m_mode === Mode.clear || this.m_mode === Mode.clear_pack_only)
+            else if(mode === Mode.clear || mode === Mode.clear_pack_only)
             {
-                var entity = this.GetNearestEntity(player.location, player.dimension);
                 if(!entity) { chat("no entity found"); return; }
-                var packOnly = this.m_mode === Mode.clear_pack_only;
+                var packOnly = mode === Mode.clear_pack_only;
                 this.ClearData(entity, packOnly);
                 chat(packOnly ? "cleared pack data" : "cleared data");
             }
-            else if(this.m_mode === Mode.set_dummy)
+            else if(mode === Mode.set_dummy)
             {
-                var entity = this.GetNearestEntity(player.location, player.dimension);
                 if(!entity) { chat("no entity found"); return; }
                 this.SetDummyData(entity);
                 chat("dummy data set");
             }
             else
             {
-                chat("mode " + this.m_mode + " not implemented");
+                chat("mode " + mode + " not implemented");
             }
         }
+    }
+
+
+    // --- CHANGE MODE ---
+
+    /**
+     * @param {Player} player
+     */
+    PresentModeForm(player) {
+        var form = new ActionFormData()
+            .title("Data Rod Mode")
+            .body("Change what happens when rod is used");
+
+        for(var modeIdx = 0; modeIdx < Mode._values.length; modeIdx++)
+        {
+            var dispName = Mode._displayNames.at(modeIdx);
+            form = form.button(dispName);
+        }
+
+        form.show(player).then((result) => {
+            if (result.canceled) return -1;
+            var mode = Mode._values[result.selection];
+            this.SetMode(player, mode);
+        });
+    }
+
+    /**
+     * @param {Player} player
+     * @param {string} mode
+     */
+    SetMode(player, mode)
+    {
+        player.setDynamicProperty(Mode._prop_id, mode);
+        this.ModeChangedFeedback(player, mode);
+    }
+
+    /**
+     * @param {Player} player
+     * @returns {string | undefined}
+     */
+    GetMode(player)
+    {
+        return player.getDynamicProperty(Mode._prop_id);
+    }
+
+    /**
+     * @param {Player} player
+     * @param {string} mode
+     */
+    ModeChangedFeedback(player, mode)
+    {
+        const modeName = Mode.DisplayName(mode);
+        const rawMessage = { rawtext: [ { text: "Set Mode §3'" }, { translate: modeName }, { text: "'§r" } ] };
+        var stack = utils.GetHeldItem(player);
+        if(stack)
+        {
+            const rawLore = [ "§7Mode: §r§3'" + modeName + "'§r" ]; // raw lore cant be translated? what the helly
+            stack.setLore(rawLore);
+            utils.SetHeldItem(player, stack, /*override:*/ true);
+        }
+
+        player.sendMessage(rawMessage);
     }
 
     /**
@@ -208,12 +234,14 @@ export default class DataRodComponent {
     }
 
     /**
-     * @param {Entity} entity 
+     * @param {Entity} entity
+     * @param {Player} player
      */
-    ListData(entity)
+    ListData(entity, player)
     {
         var dataEntity = entity;
         var typeName = entity.typeId;
+
         // values for item entities:
         var amount = null;
         var maxAmount = null;
@@ -222,52 +250,58 @@ export default class DataRodComponent {
         var itemComponent = entity.getComponent(EntityItemComponent.componentId);
         if(itemComponent)
         {
+            // for item stack entities the persisting data actually lives inside the item stack object
             const stack = itemComponent.itemStack;
-            dataEntity = stack; // for item stack entities the persisting data actually lives inside the item stack object
+            dataEntity = stack;
             typeName += "<" + stack.typeId + ">";
             amount = stack.amount;
             maxAmount = stack.maxAmount;
             stackable = stack.isStackable;
         }
 
-        chat(typeName);
+        var i = "   ";
+        var i2 = i + i;
+        var rawText = [ { text: "§7Entity\n{\n" } ];
+        rawText.push({ text: i });
+        rawText.push({ translate: utils.tr(entity) });
+        rawText.push({ text: "\n" });
 
-        if(dataEntity.nameTag && dataEntity.nameTag.length > 0)
-        {
-            chat("nameTag: " + dataEntity.nameTag);
-        }
-
-        if(amount) chat("amount: " + amount);
-        if(maxAmount) chat("maxAmount: " + maxAmount);
-        if(stackable) chat("stackable: " + stackable);
+        if(dataEntity.nameTag && dataEntity.nameTag.length > 0) rawText.push({ text: i + "nameTag: '§5" + dataEntity.nameTag + "§7'\n" });
+        if(amount)    rawText.push({ text: i + "amount: §3"    + amount + "§7\n" });
+        if(maxAmount) rawText.push({ text: i + "maxAmount: §3" + maxAmount + "§7\n" });
+        if(stackable) rawText.push({ text: i + "stackable: §3" + stackable + "§7\n" });
 
         var tags = dataEntity.getTags();
         if (tags.length > 0) {
-            chat("tags:");
-            chat("{");
+            rawText.push({ text: i + "tags:\n" });
+            rawText.push({ text: i + "[\n" });
             tags.forEach((tag) => {
-                chat("   " + tag);
+                rawText.push({ text: i2 + tag + "\n" });
             });
-            chat("}");
+            rawText.push({ text: i + "]\n" });
         }
         else {
-            chat("tags: {}");
+            rawText.push({ text: i + "tags: []\n" });
         }
 
         var dynPropIds = dataEntity.getDynamicPropertyIds();
         if (dynPropIds.length > 0) {
             chat("dnamic properties:");
-            chat("{");
+            rawText.push({ text: i + "dyn-props:\n" });
+            rawText.push({ text: i + "{\n" });
             dynPropIds.forEach(dynPropId => {
                 var dynVal = dataEntity.getDynamicProperty(dynPropId);
-                chat("   " + dynPropId + " = " + dynVal);
+                rawText.push({ text: i2 + dynPropId + ": §3" + dynVal.constructor.name.toLowerCase() + "§7 = '" + dynVal + "'\n" });
             });
-            chat("}");
+            rawText.push({ text: i + "}\n" });
         }
         else {
-            chat("dnamic properties: {}");
+            rawText.push({ text: i + "dyn-props: []\n" });
         }
-        chat("");
+
+        rawText.push({ text: "}"})
+
+         player.sendMessage({ rawtext: rawText })
     }
 
     /**

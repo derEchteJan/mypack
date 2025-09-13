@@ -46,10 +46,6 @@
 
     // OTHER BLOCKS
 
-    "mypack:combiner": {
-        "sound": "stone"
-        // textures defined in behaviour_pack/blocks/combiner.json to implement custom rotation
-    },
     "mypack:shared_chest": {
         "sound": "wood"
     },

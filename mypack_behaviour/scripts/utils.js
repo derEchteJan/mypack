@@ -2,28 +2,74 @@ import {
     system,
     world,
     Player,
+    Block,
+    Entity,
     ItemStack,
     EntityComponentTypes,
     EquipmentSlot,
 } from "@minecraft/server";
 
+// --- MANUAL TRANSLATION KEY REDEFINITIONS ---
+
+// blocks
+
+const block_loc_keys = new Map();
+block_loc_keys.set("minecraft:sandstone_wall", "tile.cobblestone_wall.sandstone.name");
+
+// items
+
+const item_loc_keys = new Map();
+item_loc_keys.set("mypack:test", "dieter");
+
+const entity_loc_keys = new Map();
 
 /**
  * Foundatinoal code that is reused across the project
  */
 export default class utils
 {
+    static toString(object)
+    {
+        
+    }
+
     /**
-     * Returns translation key for given text
-     * @param {string} str text
+     * Returns translation id for given Block, ItemStack or Entity
+     * Defaults to typeId if not implemented
+     * @param {Block|ItemStack|Entity} object text
      * @returns {string} translation id
      */
-    static tr(str)
+    static tr(object)
     {
         const mc_prefix = "minecraft:";
-        var translationId = (str.startsWith(mc_prefix) ? str.substring(mc_prefix.length) : str);
-        translationId = "tile." + translationId + ".name";
-        return translationId;
+
+        var result = object.typeId;
+
+        if(object instanceof Block)
+        {
+            var remapped = block_loc_keys.get(object.typeId);
+            if(remapped) return remapped;
+
+            if(result.includes(mc_prefix)) result = result.replace(mc_prefix, "");
+            result = "tile." + result + ".name";
+        }
+        if(object instanceof ItemStack)
+        {
+            var remapped = item_loc_keys.get(object.typeId);
+            if(remapped) return remapped;
+
+            if(result.includes(mc_prefix)) result = result.replace(mc_prefix, "");
+            result = "item." + result + ".name";
+        }
+        if(object instanceof Entity)
+        {
+            var remapped = entity_loc_keys.get(object.typeId);
+            if(remapped) return remapped;
+
+            if(result.includes(mc_prefix)) result = result.replace(mc_prefix, "");
+            result = "entity." + result + ".name";
+        }
+        return result;
     }
 
     /**

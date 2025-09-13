@@ -11,7 +11,7 @@ import {
 } from "@minecraft/server";
 
 
-import { MessageFormData, ActionFormData } from "@minecraft/server-ui";
+import { ActionFormData } from "@minecraft/server-ui";
 
 import Sorting from "../handlers/sorting.js"
 import utils from "../utils.js"
@@ -62,8 +62,20 @@ class Mode
     static tally = "tally";
     static swap = "swap";
 
+    static _prop_id = "mypack:sort_rod_mode";
     static _values =       [ Mode.sort,    Mode.compact,    Mode.tally,    Mode.swap       ];
     static _displayNames = [ "Sort Items", "Compact Items", "Tally Items", "Swap Contents" ];
+
+    /**
+     * @param {string} mode
+     * @returns {string}
+     */
+    static DisplayName(mode)
+    {
+        if(!this._values.includes(mode)) return "";
+        var idx = this._values.indexOf(mode);
+        return this._displayNames[idx];
+    }
 }
 
 /** SortRodComponent
@@ -73,7 +85,6 @@ export default class SortRodComponent {
 
     // item mode
     m_sorting = new Sorting();
-    m_modePropId = "mypack:sort_rod_mode";
     m_otherContainerPropId = "mypack:sort_rod_selected_container";
     m_cooldownTicks = 7;
     m_cooldownTimestamp = -1;
@@ -101,10 +112,9 @@ export default class SortRodComponent {
         if(inventory && inventory.container)
         {
             const container = inventory.container;
-            var modeVal = this.GetItemMode(player);
-            if(modeVal !== undefined && modeVal >= 0 && modeVal < Mode._values.length)
+            var mode = this.GetMode(player);
+            if(mode)
             {
-                var mode = Mode._values[modeVal];
                 if(mode === Mode.sort)    this.Sort(container, block, player);
                 if(mode === Mode.compact) this.Compact(container, block, player);
                 if(mode === Mode.tally)   this.Tally(container, block, player);
@@ -206,35 +216,55 @@ export default class SortRodComponent {
             .title("Sort Rod Mode")
             .body("Change what happens when you press on a chest");
         
-        for(var mode = 0; mode < Mode._values.length; mode++)
+        for(var modeIdx = 0; modeIdx < Mode._values.length; modeIdx++)
         {
-            var dispName = Mode._displayNames.at(mode);
+            var dispName = Mode._displayNames.at(modeIdx);
             form = form.button(dispName);
         }
 
         form.show(player).then((result) => {
             if (result.canceled) return -1;
-            this.SetItemMode(result.selection, player);
+            var mode = Mode._values[result.selection];
+            this.SetMode(player, mode);
         });
     }
 
     /**
-     * @param {number} mode
      * @param {Player} player
+     * @param {string} mode
      */
-    SetItemMode(mode, player)
+    SetMode(player, mode)
     {
-        player.setDynamicProperty(this.m_modePropId, mode);
+        player.setDynamicProperty(Mode._prop_id, mode);
         this.ModeChangedFeedback(player, mode);
     }
 
     /**
      * @param {Player} player
-     * @returns {number | undefined}
+     * @returns {string | undefined}
      */
-    GetItemMode(player)
+    GetMode(player)
     {
-        return player.getDynamicProperty(this.m_modePropId);
+        return player.getDynamicProperty(Mode._prop_id);
+    }
+
+    /**
+     * @param {Player} player
+     * @param {string} mode
+     */
+    ModeChangedFeedback(player, mode)
+    {
+        const modeName = Mode.DisplayName(mode);
+        const rawMessage = { rawtext: [ { text: "Set Mode §3'" }, { translate: modeName }, { text: "'§r" } ] };
+        var stack = utils.GetHeldItem(player);
+        if(stack)
+        {
+            const rawLore = [ "§7Mode: §r§3'" + modeName + "'§r" ]; // raw lore cant be translated? what the helly
+            stack.setLore(rawLore);
+            utils.SetHeldItem(player, stack, /*override:*/ true);
+        }
+
+        player.sendMessage(rawMessage);
     }
 
 
@@ -298,27 +328,6 @@ export default class SortRodComponent {
     // --- PLAYER FEEDBACK ---
 
     /**
-     * @param {Player} player
-     * @param {number} modeValue
-     */
-    ModeChangedFeedback(player, modeValue)
-    {
-        const modeName = Mode._displayNames[modeValue];
-        const rawMessage = { rawtext: [ { text: "Set Mode §3'" }, { translate: modeName }, { text: "'§r" } ] };
-
-        var stack = utils.GetHeldItem(player);
-        if(stack)
-        {
-            //stack = stack.clone();
-            const rawLore = [ "§7Mode: §r§3'" + modeName + "'§r" ]; // raw lore cant be translated? what the helly
-            stack.setLore(rawLore);
-            utils.SetHeldItem(player, stack, /*override:*/ true);
-        }
-
-        player.sendMessage(rawMessage);
-    }
-
-    /**
      * @param {Player} player 
      * @param {Block} block1 
      * @param {Block} block2 
@@ -328,8 +337,8 @@ export default class SortRodComponent {
         const sorting = this.m_sorting;
         sorting.HighlightContainer(block1);
         sorting.HighlightContainer(block2);
-        const name1 = utils.tr("minecraft:chest");
-        const name2 = utils.tr("mypack:sorter");
+        const name1 = utils.tr(block1);
+        const name2 = utils.tr(block2);
         const rawMessage = { rawtext: [ { text: "§7Swapped §3'" }, { translate: name1 }, { text: "'§r§7 <-> §3'" }, { translate: name2 }, { text: "'§r" } ] };
         player.sendMessage(rawMessage);
     }

@@ -77,7 +77,7 @@ export default class FarmlandSlabComponent {
         {
             includeTypes: [ "water" ]
         }
-        var waterNearby = block.dimension.containsBlock(blockVolume, blockFilter, false);
+        var waterNearby = block.dimension.containsBlock(blockVolume, blockFilter, true);
         if(waterNearby && wet === false)
         {
             // farmland transitions to wet state
