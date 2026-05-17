@@ -11,31 +11,7 @@ import {
     BlockInventoryComponent,
 } from "@minecraft/server";
 
-
-// --- UTILS ---
-
-/** logs message to console and world chat
- * @param {string} message
-*/
-function log(message) {
-    console.log(message);
-    world.sendMessage(message);
-}
-
-/** logs message to world chat
- * @param {string} message
-*/
-function chat(message) {
-    world.sendMessage(message);
-}
-
-/** logs error message
- * @param {string} message
-*/
-function logErr(message) {
-    console.log("error: " + message);
-    world.sendMessage("error: " + message);
-}
+import { log, log_err, chat } from '../logging.js'
 
 
 // --- DATA TYPES ---

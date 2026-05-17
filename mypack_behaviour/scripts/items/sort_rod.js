@@ -10,38 +10,11 @@ import {
     BlockInventoryComponent,
 } from "@minecraft/server";
 
-
 import { ActionFormData } from "@minecraft/server-ui";
 
-import Sorting from "../handlers/sorting.js"
+import { log, log_err, chat } from '../logging.js'
 import utils from "../utils.js"
-
-
-// --- UTILS ---
-
-/** logs message to console and world chat
- * @param {string} message
-*/
-function log(message) {
-    console.log(message);
-    world.sendMessage(message);
-}
-
-/** logs message to world chat
- * @param {string} message
-*/
-function chat(message) {
-    world.sendMessage(message);
-}
-
-/** logs error message
- * @param {string} message
-*/
-function logErr(message)
-{
-    console.log("error: " + message);
-    world.sendMessage("error: " + message);
-}
+import Sorting from "../handlers/sorting.js"
 
 
 // --- DATA TYPES ---

@@ -5,22 +5,8 @@ import {
     EntityItemComponent,
 } from "@minecraft/server";
 
-// --- UTILS ---
+import { log, log_err, chat } from '../logging.js'
 
-/** logs message to console and world chat
- * @param {string} message
-*/
-function log(message) {
-    console.log(message);
-    world.sendMessage(message);
-}
-
-/** logs message to world chat
- * @param {string} message
-*/
-function chat(message) {
-    world.sendMessage(message);
-}
 
 // --- CLASS ---
 
@@ -45,7 +31,7 @@ export default class VacuumRodComponent {
         if(player.isSneaking)
         {
             this.m_instantVacuum = !this.m_instantVacuum;
-            chat("m_instantVacuum " + this.m_instantVacuum);
+            chat("instant vacuum: " + this.m_instantVacuum);
         }
         else
         {
@@ -53,7 +39,7 @@ export default class VacuumRodComponent {
         }
     }
 
-    /**
+    /** Applies vacuum effect to given player (depending on mode)
      * @param {Player} player 
      */
     Vacuum(player) {
@@ -74,6 +60,9 @@ export default class VacuumRodComponent {
         //chat("got components");
 
         if (this.m_instantVacuum) {
+
+            // instantly picks up items nearby
+
             entities.forEach(entity => {
                 var itemComponent = entity.getComponent(EntityItemComponent.componentId);
                 if (itemComponent) {
@@ -87,7 +76,10 @@ export default class VacuumRodComponent {
             });
         }
         else {
-            const downscale = 4;
+
+            // pushes items nearby towards player and lets them pick up naturally
+
+            const velocityFactor = 0.25;
 
             entities.forEach(entity => {
 
@@ -98,13 +90,9 @@ export default class VacuumRodComponent {
                 var dy = to.y - from.y;
                 var dz = to.z - from.z;
 
-                //chat("coords: " + " dx:"+dx+" dy:"+dy+" dz:"+dz);
-                //var len = Math.sqrt(dx * dx + dy * dy);
-                //len = Math.sqrt(len * len + dz * dz);
-
-                dx /= downscale;
-                dy /= downscale;
-                dz /= downscale;
+                dx *= velocityFactor;
+                dy *= velocityFactor;
+                dz *= velocityFactor;
 
                 entity.applyImpulse({ x: dx, y: dy, z: dz });
 

@@ -20,14 +20,16 @@ export default class ShowCoords {
     ShowCoords() {
         world.getPlayers().forEach((player) => {
             const equipment = player.getComponent(EntityComponentTypes.Equippable);
-            if (equipment) {
+            if (equipment)
+            {
                 var mainHand = equipment.getEquipment(EquipmentSlot.Mainhand);
-                if (mainHand) {
+                if (mainHand)
+                {
                     if (mainHand.typeId === "minecraft:filled_map"
                         || mainHand.typeId === "minecraft:compass"
                         || mainHand.typeId === "minecraft:lodestone_compass"
-                        || mainHand.typeId === "minecraft:recovery_compass") {
-                        //log(player.name + " has map in hand");
+                        || mainHand.typeId === "minecraft:recovery_compass")
+                    {
                         var px = Math.round(player.location.x);
                         var py = Math.round(player.location.y);
                         var pz = Math.round(player.location.z);

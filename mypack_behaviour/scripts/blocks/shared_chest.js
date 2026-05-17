@@ -12,20 +12,8 @@ import {
     BlockVolume
 } from "@minecraft/server";
 
-function log(message) {
-  //console.log(message);
-  //world.sendMessage(message);
-}
+import { log, log_err, chat } from '../logging.js'
 
-function chat(message) {
-  //world.sendMessage(message);
-}
-
-function logErr(message)
-{
-    console.log("error: " + message);
-    world.sendMessage("error: " + message);
-}
 
 var s_linkedContainer = null;
 var s_cooldownTicks = 6; // prevent spamming
@@ -45,7 +33,7 @@ export default class SharedChestComponent {
      * @param {CustomComponentParameters} params
      */
     onPlayerInteract(event, params) {
-        
+
         if(!this.CheckCooldown()) return;
 
         var player = event.player;
@@ -56,85 +44,70 @@ export default class SharedChestComponent {
         var heldItem = playerInventory.container.getItem(selectedSlot);
 
         var linkedContainer = this.GetSharedContainer();
-        if(!linkedContainer) { logErr("linkedContainer is null"); return; }
+        if(!linkedContainer) { log_err("linked container not found, cant insert"); return; }
 
         if(heldItem)
         {
-            
-                // player is holding any item other than test: transfer it to the target container
+            // player is holding any item other than test: transfer it to the target container
 
-                chat("attempting to insert item " + heldItem.typeId);
+            log("attempting to insert item " + heldItem.typeId);
 
-                if(linkedContainer)
-                {
-                    var addResult = linkedContainer.addItem(heldItem);
-                    if(addResult === undefined)
-                    {
-                        var equipment = player.getComponent(EntityEquippableComponent.componentId);
-                        equipment.setEquipment(EquipmentSlot.Mainhand, null);
-                        this.PlayInsertSound(player, block, linkedContainer);
-                    }
-                    else
-                    {
-                        chat("container is full!");
-                        this.PlayFullSound(player, block);
-                    }
-                }
-                else
-                {
-                    logErr("no container linked, cant insert"); return;
-                }
+            var addResult = linkedContainer.addItem(heldItem);
+            if(addResult === undefined)
+            {
+                var equipment = player.getComponent(EntityEquippableComponent.componentId);
+                equipment.setEquipment(EquipmentSlot.Mainhand, null);
+                this.PlayInsertSound(player, block, linkedContainer);
+            }
+            else
+            {
+                chat("container is full!", player);
+                this.PlayFullSound(player, block);
+            }
         }
         else
         {
             // player isnt holding an item: transfer itens from target container to the player
 
-            chat("attempting to retrieve item");
-            if(linkedContainer)
+            log("attempting to retrieve item");
+
+            var didTake = false;
+            for(var i = linkedContainer.size - 1; i >= 0; i--)
             {
-                var didTake = false;
-                for(var i = linkedContainer.size - 1; i >= 0; i--)
+                var itemStack = linkedContainer.getItem(i);
+                if(itemStack)
                 {
-                    var itemStack = linkedContainer.getItem(i);
-                    if(itemStack)
+                    log("retrieving: " + itemStack.typeId);
+
+                    if(player.isSneaking)
                     {
-                        chat("retrieving: " + itemStack.typeId);
+                        var dropLocation = block.location;
+                        var offset = { x: 0.5, y: 1.0, z: 0.5 };
+                        dropLocation.x += offset.x;
+                        dropLocation.y += offset.y;
+                        dropLocation.z += offset.z;
 
-                        if(player.isSneaking)
+                        var droppedStack = player.dimension.spawnItem(itemStack, dropLocation);
+                        droppedStack.applyImpulse({x: 0, y: 0.1, z: 0 });
+
+                        linkedContainer.setItem(i, null);
+                        didTake = true;
+                    }
+                    else
+                    {
+                        var equipment = player.getComponent(EntityEquippableComponent.componentId);
+                        var didSet = equipment.setEquipment(EquipmentSlot.Mainhand, itemStack);
+                        if(didSet)
                         {
-                            var dropLocation = block.location;
-                            var offset = { x: 0.5, y: 1.0, z: 0.5 };
-                            dropLocation.x += offset.x;
-                            dropLocation.y += offset.y;
-                            dropLocation.z += offset.z;
-
-                            var droppedStack = player.dimension.spawnItem(itemStack, dropLocation);
-                            droppedStack.applyImpulse({x: 0, y: 0.1, z: 0 });
-
                             linkedContainer.setItem(i, null);
                             didTake = true;
                         }
-                        else
-                        {
-                            var equipment = player.getComponent(EntityEquippableComponent.componentId);
-                            var didSet = equipment.setEquipment(EquipmentSlot.Mainhand, itemStack);
-                            if(didSet)
-                            {
-                                linkedContainer.setItem(i, null);
-                                didTake = true;
-                            }
-                        }
-                        //s_linkedContainer.transferItem(i, playerInventory.container); <-- removed
-                        break;
                     }
+                    break;
                 }
-                if(!didTake) this.PlayEmptySound(player, block);
-                else this.PlayRemoveSound(player, block);
             }
-            else
-            {
-                logErr("no container linked, cant retrieve"); return;
-            }
+            if(!didTake) this.PlayEmptySound(player, block);
+            else this.PlayRemoveSound(player, block);
         }
     }
 
@@ -163,18 +136,21 @@ export default class SharedChestComponent {
 
             var dimension = world.getDimension("overworld");
             var block = dimension.getBlock(magicCoords);
-            var inventory = block.getComponent(BlockInventoryComponent.componentId);
-            if(inventory && inventory.container)
+            if(block) // might need ticking area to be loaded
             {
-                chat("set shared container")
-                s_linkedContainer = inventory.container;
-            }
-            else
-            {
-                const fillVolume = new BlockVolume(magicCoords, magicCoords);
-                dimension.fillBlocks(fillVolume, "minecraft:hopper", null);
-                chat("created shared container block");
-                s_linkedContainer = this.GetSharedContainer();
+                var inventory = block.getComponent(BlockInventoryComponent.componentId);
+                if(inventory && inventory.container)
+                {
+                    log("set shared container handle");
+                    s_linkedContainer = inventory.container;
+                }
+                else
+                {
+                    const fillVolume = new BlockVolume(magicCoords, magicCoords);
+                    dimension.fillBlocks(fillVolume, "minecraft:hopper", null);
+                    log("created shared container block");
+                    s_linkedContainer = this.GetSharedContainer();
+                }
             }
         }
 

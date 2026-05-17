@@ -17,11 +17,11 @@
         "test_item": {
             "textures": "textures/items/test_item"
         },
+        "air_shard": {
+            "textures": "textures/items/air_shard"
+        },
         "hook": {
             "textures": "textures/items/hook"
-        },
-        "shared_chest_entity2": { // what even is this?
-            "textures": "textures/entity/shared_chest_front"
         },
         "rice": {
             "textures": "textures/items/rice"

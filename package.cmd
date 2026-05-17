@@ -18,4 +18,3 @@ rename package\mypack_addon.zip mypack.mcaddon
 
 del /s /f /q package\mypack_behaviour.mcpack > NUL
 del /s /f /q package\mypack_resources.mcpack > NUL
-

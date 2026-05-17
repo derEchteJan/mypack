@@ -9,30 +9,7 @@ import {
     PlayerInteractWithEntityAfterEvent
 } from "@minecraft/server";
 
-// --- UTILS ---
-
-/** logs message to console and world chat
- * @param {string} message
-*/
-function log(message) {
-    console.log(message);
-    world.sendMessage(message);
-}
-
-/** logs message to world chat
- * @param {string} message
-*/
-function chat(message) {
-    world.sendMessage(message);
-}
-
-/** logs error message
- * @param {string} message
-*/
-function logErr(message) {
-    console.log("error: " + message);
-    world.sendMessage("error: " + message);
-}
+import { log, log_err, chat } from '../logging.js'
 
 
 /** Pets handler class,
@@ -284,7 +261,7 @@ export default class Pets {
             this.ShowParticles(preTpPos, preTpDimension);
         }
         else
-            logErr("unable to teleport pet to store");
+            log_err("unable to teleport pet to store");
     }
 
     /**
@@ -300,7 +277,7 @@ export default class Pets {
             this.ShowParticles(pet.location, pet.dimension);
         }
         else
-            logErr("unable to teleport pet to player");
+            log_err("unable to teleport pet to player");
     }
 
     /**

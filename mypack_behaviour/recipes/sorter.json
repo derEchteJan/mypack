@@ -4,30 +4,35 @@
     {
         "description":
         {
-            "identifier": "mypack:shared_chest"
+            "identifier": "mypack:sorter"
         },
         "tags": [ "crafting_table" ],
         "pattern":
         [
-            "WWW",
-            "WEW",
-            "WWW"
+            "CCC",
+            "CSC",
+            "CRC"
         ],
         "key": {
-            "W":
+            "C":
             {
-                "item": "minecraft:oak_planks",
+                "item": "minecraft:cobbled_deepslate",
                 "data": 0
             },
-            "E":
+            "S":
             {
-                "item": "minecraft:echo_shard",
+                "item": "mypack:sort_rod",
+                "data": 0
+            },
+            "R":
+            {
+                "item": "minecraft:redstone",
                 "data": 0
             }
         },
         "result":
         {
-            "item": "mypack:shared_chest",
+            "item": "mypack:sorter",
             "data": 0,
             "count": 1
         }

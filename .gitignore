@@ -4,4 +4,4 @@ package.json
 package-lock.json
 
 # ignore packaging folder
-package/
+#package/

@@ -4,30 +4,29 @@
     {
         "description":
         {
-            "identifier": "mypack:shared_chest"
+            "identifier": "mypack:vacuum_rod"
         },
         "tags": [ "crafting_table" ],
         "pattern":
         [
-            "WWW",
-            "WEW",
-            "WWW"
+            "X",
+            "B"
         ],
         "key": {
-            "W":
+            "X":
             {
-                "item": "minecraft:oak_planks",
+                "item": "mypack:air_shard",
                 "data": 0
             },
-            "E":
+            "B":
             {
-                "item": "minecraft:echo_shard",
+                "item": "minecraft:blaze_rod",
                 "data": 0
             }
         },
         "result":
         {
-            "item": "mypack:shared_chest",
+            "item": "mypack:vacuum_rod",
             "data": 0,
             "count": 1
         }

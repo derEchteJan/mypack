@@ -11,16 +11,17 @@ import {
 
 // --- MANUAL TRANSLATION KEY REDEFINITIONS ---
 
-// blocks
+// maps of object ids to translatable ids for rawmessages
 
+// blocks
 const block_loc_keys = new Map();
 block_loc_keys.set("minecraft:sandstone_wall", "tile.cobblestone_wall.sandstone.name");
 
 // items
-
 const item_loc_keys = new Map();
 item_loc_keys.set("mypack:test", "dieter");
 
+// entities
 const entity_loc_keys = new Map();
 
 /**
@@ -28,9 +29,11 @@ const entity_loc_keys = new Map();
  */
 export default class utils
 {
+    static debug = true; /** indicates debug mode */
+
     static toString(object)
     {
-        
+        // TODO: implement stringify
     }
 
     /**
