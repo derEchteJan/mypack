@@ -8,10 +8,10 @@
                 "default": "entity_alphatest"
             },
             "textures": {
-                "default": "textures/entity/spear"
+                "default": "textures/entity/mypack_spear"
             },
             "geometry": {
-                "default": "geometry.spear"
+                "default": "geometry.mypack_spear"
             },
             "animations": {
                 "move": "animation.test_arrow.move"

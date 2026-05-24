@@ -129,7 +129,7 @@ export default class PetRodComponent {
             }
             else if(this.m_mode === Mode.store)
             {
-                var pet = pets.GetNearestPet(player, player.location, /*stored:*/ false);
+                var pet = pets.GetNearestPet(player, player.location, /*stored:*/ false, 3);
                 if(pet)
                 {
                     pets.Store(pet);

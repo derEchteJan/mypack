@@ -22,24 +22,37 @@ export default class ShowCoords {
             const equipment = player.getComponent(EntityComponentTypes.Equippable);
             if (equipment)
             {
+                var showCoords = false;
+                
                 var mainHand = equipment.getEquipment(EquipmentSlot.Mainhand);
-                if (mainHand)
+                showCoords |= mainHand && this.IsNavItem(mainHand.typeId);
+                
+                var offHand = equipment.getEquipment(EquipmentSlot.Offhand);
+                showCoords |= offHand && this.IsNavItem(offHand.typeId);
+
+                if(showCoords)
                 {
-                    if (mainHand.typeId === "minecraft:filled_map"
-                        || mainHand.typeId === "minecraft:compass"
-                        || mainHand.typeId === "minecraft:lodestone_compass"
-                        || mainHand.typeId === "minecraft:recovery_compass")
-                    {
-                        var px = Math.round(player.location.x);
-                        var py = Math.round(player.location.y);
-                        var pz = Math.round(player.location.z);
-                        var text = "x:" + px + " y:" + py + " z:" + pz;
-                        world.getDimension("overworld").runCommandAsync("title \"" + player.name + "\" actionbar " + text);
-                    }
+                    var px = Math.round(player.location.x - 0.5);
+                    var py = Math.round(player.location.y - 0.5);
+                    var pz = Math.round(player.location.z - 0.5);
+                    var text = "x:" + px + " y:" + py + " z:" + pz;
+                    world.getDimension("overworld").runCommandAsync("title \"" + player.name + "\" actionbar " + text);
                 }
             }
-
         });
+    }
+
+    /**
+     * Returns wether given item id qualifies as a navigation item
+     * that shows coords when held
+     * @param {string} itemId 
+     */
+    IsNavItem(itemId)
+    {
+        return itemId === "minecraft:filled_map"
+            || itemId === "minecraft:compass"
+            || itemId === "minecraft:lodestone_compass"
+            || itemId === "minecraft:recovery_compass"
     }
 
     OnTick() {

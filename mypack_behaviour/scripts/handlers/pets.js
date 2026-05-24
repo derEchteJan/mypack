@@ -45,7 +45,8 @@ export default class Pets {
     /**
      * @param {EntityLoadAfterEvent} event 
      */
-    OnEntityLoad(event) {
+    OnEntityLoad(event)
+    {
         var entity = event.entity;
         if (entity)
         {
@@ -59,11 +60,13 @@ export default class Pets {
     /**
      * @param {PlayerInteractWithEntityAfterEvent} event 
      */
-    OnPlayerInteractWithEntity(event) {
+    OnPlayerInteractWithEntity(event)
+    {
       const entity = event.target;
       const player = event.player;
       if (entity && entity.hasComponent(EntityIsTamedComponent.componentId)) {
         entity.addTag(Pets.TAMED_TAG);
+        entity.setDynamicProperty(Pets.STORED_PROPERTY, false);
         
         if (!entity.hasTag(Pets.COMPANION_TAG)) {
           this.Register(entity, player);
@@ -108,18 +111,21 @@ export default class Pets {
      * @param {Player} player owner player
      * @param {Vector3} position search radius center
      * @param {boolean} stored sored / not stored pets
+     * @param {number} range optional max range around position
      * @returns {Entity} closest registered pet
      */
-    GetNearestPet(player, position, stored)
+    GetNearestPet(player, position, stored, range)
     {
         // EntityQueryOptions
         const queryOptions =
         {
             tags: [ Pets.COMPANION_TAG ],
             closest: 10, // range sort test
-            location: position,
-            maxDistance: 3
+            location: position
         }
+        if(range)
+            queryOptions.maxDistance = range;
+
         var entities = player.dimension.getEntities(queryOptions);
 
         entities = entities.filter((entity) => {
@@ -182,13 +188,14 @@ export default class Pets {
             for(var pet of pets)
             {
                 var dispName = pet.nameTag;
+                var storedValue = pet.getDynamicProperty(Pets.STORED_PROPERTY) === true ? "true" : "false";
                 if(dispName && dispName.length != 0)
                 {
-                    chat(pet.typeId + " '" + dispName + "'");
+                    chat(pet.typeId + " '" + dispName + "' stored: " + storedValue);
                 }
                 else
                 {
-                    chat(pet.typeId);
+                    chat(pet.typeId + " stored: " + storedValue);
                 }
             }
         }
@@ -257,7 +264,7 @@ export default class Pets {
         var teleported = pet.tryTeleport(this.m_saveLocation, teleportOptions);
         if(teleported)
         {
-            //pet.setDynamicProperty(Pets.STORED_PROPERTY, true);
+            pet.setDynamicProperty(Pets.STORED_PROPERTY, true);
             this.ShowParticles(preTpPos, preTpDimension);
         }
         else

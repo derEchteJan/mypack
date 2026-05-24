@@ -9,7 +9,8 @@ import {
     Block,
     ItemStack,
     EntityLeashableComponent,
-    EntityProjectileComponent
+    EntityProjectileComponent,
+    EntityHealthComponent
 } from "@minecraft/server";
 
 import { ActionFormData } from "@minecraft/server-ui";
@@ -219,33 +220,43 @@ export default class DataRodComponent {
     ListData(entity, player)
     {
         var dataEntity = entity;
-        var typeName = entity.typeId;
 
         // values for item entities:
+        var itemType = null;
         var amount = null;
         var maxAmount = null;
         var stackable = null;
+        var health = null; var maxHealth = null;
 
-        var itemComponent = entity.getComponent(EntityItemComponent.componentId);
+        const itemComponent = entity.getComponent(EntityItemComponent.componentId);
         if(itemComponent)
         {
             // for item stack entities the persisting data actually lives inside the item stack object
             const stack = itemComponent.itemStack;
             dataEntity = stack;
-            typeName += "<" + stack.typeId + ">";
+            itemType = stack.typeId;
             amount = stack.amount;
             maxAmount = stack.maxAmount;
             stackable = stack.isStackable;
         }
 
+        const healthComponent = entity.getComponent(EntityHealthComponent.componentId);
+        if(healthComponent){
+            health = healthComponent.currentValue;
+            maxHealth = healthComponent.effectiveMax;
+        }
+
         var i = "   ";
         var i2 = i + i;
         var rawText = [ { text: "§7Entity\n{\n" } ];
-        rawText.push({ text: i });
+        rawText.push({ text: i + "§3" });
         rawText.push({ translate: utils.tr(entity) });
-        rawText.push({ text: "\n" });
+        rawText.push({ text: "§7\n" });
 
-        if(dataEntity.nameTag && dataEntity.nameTag.length > 0) rawText.push({ text: i + "nameTag: '§5" + dataEntity.nameTag + "§7'\n" });
+        if(itemType)  rawText.push({ text: i + "itemType: §3"  + itemType + "§7\n" });
+        if(dataEntity.nameTag && dataEntity.nameTag.length > 0) 
+                      rawText.push({ text: i + "nameTag: '§5"  + dataEntity.nameTag + "§7'\n" });
+        if(health)    rawText.push({ text: i + "health: §3"    + health + "§7/" + maxHealth + "\n" });
         if(amount)    rawText.push({ text: i + "amount: §3"    + amount + "§7\n" });
         if(maxAmount) rawText.push({ text: i + "maxAmount: §3" + maxAmount + "§7\n" });
         if(stackable) rawText.push({ text: i + "stackable: §3" + stackable + "§7\n" });
@@ -270,7 +281,8 @@ export default class DataRodComponent {
             rawText.push({ text: i + "{\n" });
             dynPropIds.forEach(dynPropId => {
                 var dynVal = dataEntity.getDynamicProperty(dynPropId);
-                rawText.push({ text: i2 + dynPropId + ": §3" + dynVal.constructor.name.toLowerCase() + "§7 = '" + dynVal + "'\n" });
+                var dynType = dynVal.constructor.name.toLowerCase();
+                rawText.push({ text: i2 + dynPropId + ": §3" + dynType + "§7 = '" + dynVal + "'\n" });
             });
             rawText.push({ text: i + "}\n" });
         }
@@ -329,6 +341,7 @@ export default class DataRodComponent {
     {
         entity.addTag("dummy");
         entity.setDynamicProperty("dummy", this.m_dummyCounter);
+        entity.setDynamicProperty()
         this.m_dummyCounter += 1;
     }
 }

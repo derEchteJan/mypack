@@ -1,8 +1,9 @@
 // Run the setup.cmd to install node modules for auto-complete and doc
 
 import {
-  world,
   system,
+  world,
+  Player
 } from "@minecraft/server";
 
 import { log, log_err, chat } from './logging.js'
@@ -67,22 +68,42 @@ world.beforeEvents.worldInitialize.subscribe(initEvent => {
 
 // ...
 
+// destroy boats and minecarts onehit while sneaking
+// TODO: move to dedicated handler class
+
+world.afterEvents.entityHitEntity.subscribe(event => {
+  if(event.damagingEntity.typeId === 'minecraft:player'
+    && (event.hitEntity.typeId === 'minecraft:boat' || event.hitEntity.typeId === 'minecraft:minecart')
+    && event.damagingEntity.isSneaking)
+  {
+    event.hitEntity.applyDamage(256);
+  }
+});
+
+// apply slow falling to trader when he spawns to prevent destruction of crops
+world.afterEvents.entitySpawn.subscribe(event => {
+  let entity = event.entity;
+  if(entity.typeId === 'minecraft:wandering_trader')
+  {
+    entity.addEffect("slow_falling", 100000);
+  }
+});
 
 // --- MAIN TICK LOOP ---
 
+/*
 function mainTick() {
   var tick = system.currentTick;
   // put ontick handlers here if required
   // ...
   system.run(mainTick);
 }
-
 system.run(mainTick);
-
+*/
 
 // --- GAMERULES AND INIT COMMANDS ---
 
-utils.debug = false; // set debug mode for logging etc.
+utils.debug = true; // set debug mode for logging etc.
 
 world.getDimension("overworld").runCommand("gamerule playerssleepingpercentage 1");
 world.getDimension("overworld").runCommand("tickingarea add 0 -64 0 0 -64 0 shared_chest"); // set up ticking area for shared chest container
@@ -90,8 +111,10 @@ world.getDimension("overworld").runCommand("tickingarea add 0 -64 0 0 -64 0 shar
 
 // --- SUCCESSFULL INIT ---
 
+/*
 world.afterEvents.worldInitialize.subscribe(initEvent => {
   console.log("main.js world initialized");
 });
+*/
 
 console.log("main.js loaded");

@@ -34,6 +34,8 @@ in `behaviour_pack/scripts/main.js` change debug mode to true: `utils.debug = tr
 
 #### TODOs
 
+fix spears again by removing custom one
+
 | Feature                  | Details                                                                      | Implemented  |
 | -------                  | -------                                                                      | ------------:|
 | Show Coordinates         | Maps, Compass and other navitation items show coordinates while holding them | ✅           |
