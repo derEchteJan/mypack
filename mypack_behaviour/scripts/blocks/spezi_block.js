@@ -1,4 +1,5 @@
-import { 
+import {
+    system,
     world,
     BlockComponentPlayerInteractEvent,
     BlockInventoryComponent,
@@ -8,8 +9,9 @@ import {
     EntityItemComponent,
 } from "@minecraft/server";
 
-import { log, log_err, chat } from '../logging.js'
-
+import utils from '../utils.js';
+import Vector3 from "../vector.js";
+import { log, log_err, chat } from '../logging.js';
 
 // --- CLASS ---
 
@@ -39,14 +41,36 @@ export default class SpeziBlockComponent {
      * @param {BlockComponentStepOnEvent} event 
      * @param {CustomComponentParameters} params 
      */
-    onStepOn(event, params) {
-        if (event.entity && event.entity.name) {
-            const bp = event.block.location;
-            chat(event.entity.name + " stepped on the spezi block at " + bp.x + "," + bp.y + "," + bp.z + " touched: " + this.m_touched);
+    onStepOn(event, params)
+    {
+        const entity = event.entity;
+        //let block = event.block;
+        //let location = block.location;
+
+        if(!entity) return;
+        if(!entity.isValid) return;
+
+        var displayName = entity.typeId;
+        if(entity.name)
+        {
+            displayName = entity.name;
         }
-        else {
-            chat("stepped on spezi block (unnamed entity)");
+        
+        const targetSpeed = 0.2;
+        const currentSpeed = entity.getVelocity();
+        var pushed = false;
+
+        if(targetSpeed > currentSpeed.x)
+        {
+            var vec = new Vector3();
+            vec.x = targetSpeed - currentSpeed.x;
+            entity.applyImpulse(vec);
+            pushed = true;
         }
+
+        system.run(() => {
+            chat("speed: " + entity.getVelocity().x + (pushed ? " (pushed)" : ""));
+        });
     }
 
     /** PlayerInteractEvent handler
@@ -55,14 +79,14 @@ export default class SpeziBlockComponent {
      * @returns 
      */
     onPlayerInteract(event, params) {
-        if (!event.player) { chat("player interact event (no player)"); return; }
+        if (!event.player) return;
         var player = event.player;
 
         var selectedSlot = player.selectedSlotIndex;
         var playerInventory = player.getComponent(EntityInventoryComponent.componentId);
         var heldItem = playerInventory.container.getItem(selectedSlot);
         
-        chat("holding: " + heldItem.typeId ); 
+        chat("holding: " + (heldItem ? heldItem.typeId : "nothing") ); 
 
         if(heldItem)
         {

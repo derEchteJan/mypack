@@ -3,6 +3,8 @@ import {
     system, 
     world,
     Dimension,
+    Entity,
+    Player,
     EntityComponentTypes,
     EquipmentSlot
 } from "@minecraft/server"
@@ -12,34 +14,75 @@ import {
  */
 export default class ShowCoords {
 
-    constructor() {
-        this.RegisterHandlers = this.RegisterHandlers.bind(this);
-        this.OnTick = this.OnTick.bind(this);
+    constructor()
+    {
     }
 
-    ShowCoords() {
+    static UpdatePlayers() {
         world.getPlayers().forEach((player) => {
             const equipment = player.getComponent(EntityComponentTypes.Equippable);
             if (equipment)
             {
                 var showCoords = false;
+                var showAimPos = false;
                 
                 var mainHand = equipment.getEquipment(EquipmentSlot.Mainhand);
-                showCoords |= mainHand && this.IsNavItem(mainHand.typeId);
+                showCoords |= mainHand && ShowCoords.IsNavItem(mainHand.typeId);
                 
                 var offHand = equipment.getEquipment(EquipmentSlot.Offhand);
-                showCoords |= offHand && this.IsNavItem(offHand.typeId);
+                showCoords |= offHand && ShowCoords.IsNavItem(offHand.typeId);
+
+                showAimPos = mainHand.typeId === 'minecraft:spyglass';
 
                 if(showCoords)
                 {
-                    var px = Math.round(player.location.x - 0.5);
-                    var py = Math.round(player.location.y - 0.5);
-                    var pz = Math.round(player.location.z - 0.5);
-                    var text = "x:" + px + " y:" + py + " z:" + pz;
-                    world.getDimension("overworld").runCommandAsync("title \"" + player.name + "\" actionbar " + text);
+                    ShowCoords.DisplayPosition(player);
+                }
+                if(showAimPos)
+                {
+                    ShowCoords.DisplayLookAtPos(player);
                 }
             }
         });
+    }
+
+    /** Display position to given player
+     * @param {Player} player 
+     */
+    static DisplayPosition(player)
+    {
+        var px = Math.round(player.location.x - 0.5);
+        var py = Math.round(player.location.y - 0.5);
+        var pz = Math.round(player.location.z - 0.5);
+        var text = "x:" + px + " y:" + py + " z:" + pz;
+        world.getDimension("overworld").runCommand("title \"" + player.name + "\" actionbar " + text);
+    }
+
+    static DisplayLookAtPos(player)
+    {
+        const hit = player.getBlockFromViewDirection();
+        if(hit && hit.block)
+        {
+            const block = hit.block;
+
+            var px = Math.round(player.location.x - 0.5);
+            var py = Math.round(player.location.y - 0.5);
+            var pz = Math.round(player.location.z - 0.5);
+
+            var bx = Math.round(block.location.x - 0.5);
+            var by = Math.round(block.location.y - 0.5);
+            var bz = Math.round(block.location.z - 0.5);
+
+            var dx = /*Math.round*/(bx - px);
+            var dy = /*Math.round*/(by - py);
+            var dz = /*Math.round*/(bz - pz);
+
+            var d = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            d = Math.round(d * 10) / 10;
+
+            var text = "d:" + d + " (dx:" + dx + " dy:" + dy + " dz:" + dz + ")"
+            world.getDimension("overworld").runCommand("title \"" + player.name + "\" actionbar " + text);
+        }
     }
 
     /**
@@ -47,7 +90,7 @@ export default class ShowCoords {
      * that shows coords when held
      * @param {string} itemId 
      */
-    IsNavItem(itemId)
+    static IsNavItem(itemId)
     {
         return itemId === "minecraft:filled_map"
             || itemId === "minecraft:compass"
@@ -55,13 +98,8 @@ export default class ShowCoords {
             || itemId === "minecraft:recovery_compass"
     }
 
-    OnTick() {
-        if (system.currentTick % 10 === 0)
-            this.ShowCoords();
-        system.run(this.OnTick);
-    }
-
-    RegisterHandlers() {
-        system.run(this.OnTick);
+    RegisterHandlers()
+    {
+        system.runInterval(ShowCoords.UpdatePlayers, 10);
     }
 }

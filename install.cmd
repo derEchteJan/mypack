@@ -10,5 +10,5 @@ mkdir "%devb_dir%"
 if exist "%devr_dir%" rd /s /q "%devr_dir%"
 mkdir "%devr_dir%"
 
-xcopy mypack_behaviour "%devb_dir%" /e /s /i > NUL
-xcopy mypack_resources "%devr_dir%" /e /s /i > NUL
+xcopy mypack_behaviour "%devb_dir%" /e /s /i
+xcopy mypack_resources "%devr_dir%" /e /s /i

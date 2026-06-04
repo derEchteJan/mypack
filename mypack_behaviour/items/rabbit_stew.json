@@ -1,14 +1,14 @@
 {
-  "format_version": "1.16.1",
+  "format_version": "1.10",
   "minecraft:item": {
     "description": {
-      "identifier": "minecraft:beetroot_soup"
+      "identifier": "minecraft:rabbit_stew"
     },
     "components": {
       "minecraft:use_duration": 32,
-      "minecraft:max_stack_size": 16,
+      "minecraft:max_stack_size": 16, // modified with mypack
       "minecraft:food": {
-        "nutrition": 6,
+        "nutrition": 10,
         "saturation_modifier": "normal",
         "using_converts_to": "bowl"
       }

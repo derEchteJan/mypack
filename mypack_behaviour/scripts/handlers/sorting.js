@@ -9,6 +9,7 @@ import {
     Player,
     Container,
     BlockInventoryComponent,
+    MolangVariableMap
 } from "@minecraft/server";
 
 import { log, log_err, chat } from '../logging.js'
@@ -34,7 +35,7 @@ class ContainerBlock
 }
 
 
-// --- CLASSES ---
+// --- SUBCLASSES ---
 
 class Predicates
 {
@@ -94,6 +95,7 @@ class Predicates
     }
 }
 
+// --- HANDLER CLASS ---
 
 /**
  * Item sorting handler class, used by sort_rod and sorter
@@ -106,13 +108,15 @@ export default class Sorting {
     m_rangeVertOffset = -1;     // vertical range offset from origin.y
     m_maxContainerCount = 50;   // max containers iterated over in search range before aborting      
     m_containerBlockTypes =     // types of container blocks considered for transfering items
-        [ "minecraft:chest", "minecraft:barrel" ]
+        [ "minecraft:chest", "minecraft:barrel" ];
 
+    // Members
     predicates = new Predicates(this);
+    m_message = null;
 
     /** Transfers items from players inventory to/from nearby containers
      * @param {Player} player subject player
-     * @param {Vector3} origin container search area center
+     * @param {Vector3} origin container search area center i.e. the location of the sorter block
      * @param {boolean} deposit deposit / take
      */
     TransferToContainers(player, origin, deposit) {
@@ -120,22 +124,37 @@ export default class Sorting {
 
         const dimension = player.dimension;
         
-        var didTransfer = false;
+        var didTransferAny = false;
 
-        this.TransferBeginMessage(player, deposit);
+        
 
         var range = this.GetRange(origin);
 
         var containerBlocks = this.GetContainersInRange(range, dimension);
         for (var containerBlock of containerBlocks)
         {
+            var didTransfer = false;
             if (deposit) didTransfer = this.DepositToContainer(player, containerBlock.container);
             else         didTransfer = this.TakeFromContainer(player, containerBlock.container);
+            if(didTransfer) this.HighlightContainer(containerBlock.block);
+            didTransferAny |= didTransfer;
         }
-        if (didTransfer)
-            this.PlayDepositSound(player);
+        if (didTransferAny)
+        {
+            this.TransferBeginMessage(player, deposit);
+            if(deposit)
+            {
+                this.PlayDepositSound(player);
+            }
+            else
+            {
+                this.PlayTakeSound(player);
+            }
+        }
         else
+        {
             this.PlayNoTransferSound(player);
+        }
     }
 
     /**
@@ -249,11 +268,6 @@ export default class Sorting {
         if(sorted === false)
             results = new Map([...results].sort((lhs, rhs) => { return lhs[1] - rhs[1]; }));
 
-        //chat("tally:");
-        //results.forEach((value, key) => {
-        //    chat(key + " : " + value);
-        //});
-
         return results;
     }
 
@@ -349,7 +363,6 @@ export default class Sorting {
         }
     }
 
-
     // --- PRIVATE METHODS ---
 
     /** PRIVATE METHOD
@@ -435,7 +448,7 @@ export default class Sorting {
         return result;
     }
 
-    /**
+    /** Swaps contents of both given containers
      * @param {Container} source
      * @param {Container} dest
      * @param {Player | null} player optional player for message feedback
@@ -448,8 +461,6 @@ export default class Sorting {
             var iItem = source.getItem(ii);
 
             if (iItem && iItem.isStackable) {
-
-                //chat("trying to deposit " + iItem.typeId);
 
                 var countLeft = iItem.amount;
                 var takenAmount = 0;
@@ -467,8 +478,6 @@ export default class Sorting {
                         var newCItem = cItem.clone();
                         newCItem.amount = newAmount;
                         dest.setItem(ci, newCItem);
-
-                        //chat("setting " + cItem.typeId + " at slot " + ci + " from " + cItem.amount + " to " + newAmount);
                     }
                 }
 
@@ -497,14 +506,12 @@ export default class Sorting {
                     else {
                         source.setItem(ii, null);
                     }
-                    //chat("deposited " + iItem.typeId + " (" + takenAmount + "x)");
 
                     if(player)
                         this.TransferMessage(player, iItem.typeId, -1 * takenAmount, iItem.localizationKey);
 
                     result = true;
                 }
-                //chat("didnt deposit " + iItem.typeId);
             }
         }
 
@@ -640,49 +647,75 @@ export default class Sorting {
     // --- USER FEEDBACK ---
 
     /** Plays successfull deposit transfer sound to player
-     * @param {Player} player
+     * @param {Player} player target to play sound to
+     * @param {Vector3 | null} location optional location to eminate from
      */
-    PlayDepositSound(player) {
-        player.playSound("random.pop2");
+    PlayDepositSound(player, location) {
+        var options = null;
+        if(location)
+        {
+            options.location = location;
+        };
+        player.playSound("random.pop2", options);
     }
 
     /** Plays successfull take transfer sound to player
-     * @param {Player} player
+     * @param {Player} player target to play sound to
+     * @param {Vector3 | null} location optional location to eminate from
      */
-    PlayTakeSound(player) {
-        player.playSound("random.pop");
+    PlayTakeSound(player, location) {
+        var options =
+        {
+            pitch: 1.5,
+            volume: 0.3,
+            location: location
+        };
+        player.playSound("random.pop", options);
     }
 
     /** Plays deposit sound to player when nothing was transfered
-     * @param {Player} player
+     * @param {Player} player target to play sound to
+     * @param {Vector3 | null} location optional location to eminate from
      */
-    PlayNoTransferSound(player) {
-        player.playSound("block.click");
+    PlayNoTransferSound(player, location)
+    {
+        var options =
+        {
+            volume: 0.4,
+            location: location
+        };
+        player.playSound("block.click", options);
     }
 
     /**
      * Sends translated headline message to player before transfered items are listed
+     * 
+     * messages are accumulated in m_message instead to be sent collectively 
+     * at the end via MessageEnd()
      * @param {Player} player 
      * @param {boolean} deposit 
      */
     TransferBeginMessage(player, deposit)
     {
-        var title = deposit ? "Depositing" : "Taking";
-        const rawMessage = { rawtext: [ { text: "§7" + title + "§r" } ] };
-        player.sendMessage(rawMessage);
+        var title = deposit ? "Deposited Items:" : "Took Items:";
+        this.m_message.rawtext.unshift({ text: "§7" + title + "§r\n" });
     }
 
     /**
      * Sends translated message to player representing a transfered item + amount
+     * 
+     * messages are accumulated in m_message instead to be sent collectively 
+     * at the end via MessageEnd()
      * @param {Player} player
      * @param {string} itemId
      */
-    TransferMessage(player, itemId,  amount, localizationId) // <- doesnt work either..
+    TransferMessage(player, itemId,  amount)
     {
-        var colorToken = amount > 0 ? "§2" : "§c";
+        var colorToken = amount > 0 ? "§3" : "§c";
         var translationId = this.GetItemTranslationKey(itemId);
-        const rawMessage = { rawtext: [ { text: "" + colorToken + amount + "x§r " }, { translate: translationId } ] };
-        player.sendMessage(rawMessage);
+        this.m_message.rawtext.push({ text: "§7 - " });
+        this.m_message.rawtext.push({ translate: translationId });
+        this.m_message.rawtext.push({ text: " " + colorToken + amount + "x§r\n" });
     }
 
     /**
@@ -710,6 +743,25 @@ export default class Sorting {
         });
     }
 
+    /** Begins collecting raw messages
+     */
+    MessageBegin()
+    {
+        this.m_message = { rawtext: [] };
+    }
+
+    /** Stop collecting raw messages and send accumulated to player
+     * @param {Player} player optoinal message receiver
+     */
+    MessageEnd(player)
+    {
+        if(this.m_message.rawtext.length != 0)
+        {
+            (player ? player : world).sendMessage(this.m_message);
+        }
+        this.m_message = null;
+    }
+
     /**
      * Translates typeId to translationId e.g. for raw message translate
      * TODO: this doesnt work properly for some item types, find out why and fix it
@@ -718,6 +770,7 @@ export default class Sorting {
      */
     GetItemTranslationKey(itemId)
     {
+        // TODO: move to utils tr()
         var translationId = (itemId.startsWith("minecraft:") ? itemId.substring("minecraft:".length) : itemId);
         translationId = "tile." + translationId + ".name";
         return translationId;
@@ -731,7 +784,8 @@ export default class Sorting {
     HighlightContainer(block)
     {
         const dimension = block.dimension;
-        const particleType = "minecraft:blue_flame_particle";
+        //const particleType = "minecraft:blue_flame_particle";
+        const particleType = "minecraft:colored_flame_particle";
 
         var p1 = block.location;
         var p2 = block.location;
@@ -751,9 +805,12 @@ export default class Sorting {
         p3.y += 0.5;
         p4.y += 0.5;
 
-        dimension.spawnParticle(particleType, p1, null);
-        dimension.spawnParticle(particleType, p2, null);
-        dimension.spawnParticle(particleType, p3, null);
-        dimension.spawnParticle(particleType, p4, null);
+        var molang = new MolangVariableMap();
+        molang.setColorRGB('variable.color', { red: 0.6, green: 0.4, blue: 1.0 });
+
+        dimension.spawnParticle(particleType, p1, molang);
+        dimension.spawnParticle(particleType, p2, molang);
+        dimension.spawnParticle(particleType, p3, molang);
+        dimension.spawnParticle(particleType, p4, molang);
     }
 }

@@ -1,9 +1,11 @@
 import {
     world,
+    system,
     ItemComponentUseEvent,
     EntityInventoryComponent,
     EntityItemComponent,
     ItemComponentUseOnEvent,
+    ItemComponentHitEntityEvent,
     Player,
     Entity,
     Block,
@@ -19,6 +21,56 @@ import { ActionFormData } from "@minecraft/server-ui";
 
 import { log, log_err, chat } from '../logging.js'
 import utils from "../utils.js";
+import Vector3 from "../vector.js";
+
+
+// --- DRAG ENTITY TEST ---
+
+var s_target = null;
+var s_player = null;
+
+function updateDrag() {
+  var tick = system.currentTick;
+  // put ontick handlers here if required
+  // ...
+  if(s_target)
+  {
+    s_target.clearVelocity();
+  }
+  if(tick % 3 == 0)
+  {
+    if(s_player && s_target)
+    {
+      let targetDistance = 2.2; // distance from player in look direction where entity is moved to
+      let viewDir = s_player.getViewDirection();
+      //log("view dir: " + viewDir.x + ", " + viewDir.y + ", " + viewDir.z);
+      let playerPos = s_player.location;
+      var targetPos = playerPos;
+      targetPos.y += 1;
+      targetPos.x += viewDir.x * targetDistance;
+      targetPos.y += viewDir.y * targetDistance;
+      targetPos.z += viewDir.z * targetDistance;
+      
+      if(Vector3.distance(s_target.location, targetPos) > 0.5)
+      {
+        let speed = 0.8;
+        var impulse = new Vector3();
+
+        impulse.x = targetPos.x - s_target.location.x;
+        impulse.y = targetPos.y - s_target.location.y;
+        impulse.z = targetPos.z - s_target.location.z;
+        impulse.normalize();
+        impulse.scale(speed);
+
+        s_target.clearVelocity();
+        s_target.applyImpulse(impulse);
+      }      
+    }
+  }
+  system.run(updateDrag);
+}
+
+//system.run(mainTick);
 
 
 // --- CLASSES ---
@@ -29,10 +81,11 @@ class Mode
     static clear           = "clear";           // remove all tags and dynmaic properties from nearest non player entity
     static clear_pack_only = "clear_pack_only";
     static set_dummy       = "set_dummy";
+    static list_block      = "list_block";
 
     static _prop_id      = "mypack:data_rod_mode";
-    static _values       = [ Mode.list,   Mode.clear,       Mode.clear_pack_only,     Mode.set_dummy ];
-    static _displayNames = [ "List Data", "Clear All Data", "Clear Data (Pack Only)", "Set Dummy Property" ];
+    static _values       = [ Mode.list,   Mode.clear,       Mode.clear_pack_only,     Mode.set_dummy,       Mode.list_block];
+    static _displayNames = [ "List Data", "Clear All Data", "Clear Data (Pack Only)", "Set Dummy Property", "List Block data" ];
 
     /**
      * @param {string} mode
@@ -52,11 +105,26 @@ class Mode
  */
 export default class DataRodComponent {
 
-    m_dummyCounter = 0
+    static m_dummyCounter = 0;
+    static m_raycastDistance = 4;
 
     constructor() {
         this.onUse = this.onUse.bind(this);
         this.onUseOn = this.onUseOn.bind(this);
+    }
+
+    /**
+     * OnUseOnEvent handler - called when item is used on a block
+     * @param {ItemComponentHitEntityEvent} event
+     * @param {CustomComponentParameters} params
+     */
+    onHitEntity(event, params)
+    {
+        s_player = event.attackingEntity;
+        s_target = event.hitEntity;
+        s_target.nameTag = "drag target";
+        log("entities set");
+        system.run(updateDrag);
     }
 
     /**
@@ -68,28 +136,32 @@ export default class DataRodComponent {
     {
         const block = event.block;
         const player = event.source;
-        if(!player.isSneaking) return;
         const mode = this.GetMode(player);
-        if(mode !== Mode.list) return;
-        const rawMessage = { rawtext: [ { text: "§7Block: §3'" }, { translate: utils.tr(block) }, { text: "'§r" } ] };
-        player.sendMessage(rawMessage);
+
+        if(mode === Mode.list_block)
+        {
+            this.ListBlockData(block, player);
+        }
     }
 
     /**
+     * OnUse handler - called when item is used
      * @param {ItemComponentUseEvent} event 
      * @param {CustomComponentParameters} params 
      */
     onUse(event, params) {
         const player = event.source;
-
-        if(!player.isSneaking)
+        if(player.isSneaking)
         {
             this.PresentModeForm(player);
         }
         else
         {
             const mode = this.GetMode(player);
-            const entity = this.GetNearestEntity(player.location, player.dimension);
+            var entity = this.GetLookedAtEntity(player);
+            if(!entity) entity = this.GetNearestEntity(player.location, player.dimension);
+
+            if(!entity) { chat("no entity found"); return; }
 
             if(mode === Mode.list)
             {
@@ -108,7 +180,16 @@ export default class DataRodComponent {
             {
                 if(!entity) { chat("no entity found"); return; }
                 this.SetDummyData(entity);
-                chat("dummy data set");
+                var name = entity.typeId;
+                if(entity.name)
+                    name = entity.name;
+                if(entity.nameTag)
+                    name = entity.nameTag;
+                chat("dummy data set on §3" + name + "§7");
+            }
+            else if(mode === Mode.list_block)
+            {
+                return;
             }
             else
             {
@@ -116,7 +197,6 @@ export default class DataRodComponent {
             }
         }
     }
-
 
     // --- CHANGE MODE ---
 
@@ -194,6 +274,20 @@ export default class DataRodComponent {
         }
         var entities = dimension.getEntities(queryOptions);
         return (entities.length > 0) ? entities.at(0) : null;
+    }
+
+    /**
+     * Returns first entity the given player/entity is looking at
+     * @param {Entity|Player} entity - looker
+     * @returns {Entity|null} first looked at entity
+     */
+    GetLookedAtEntity(entity)
+    {
+        const raycastOptions = {
+            maxDistance: this.m_raycastDistance
+        }
+        const hits = entity.getEntitiesFromViewDirection(raycastOptions);
+        return hits.length > 0 ? hits[0].entity : null;
     }
 
     /**
@@ -276,7 +370,6 @@ export default class DataRodComponent {
 
         var dynPropIds = dataEntity.getDynamicPropertyIds();
         if (dynPropIds.length > 0) {
-            chat("dnamic properties:");
             rawText.push({ text: i + "dyn-props:\n" });
             rawText.push({ text: i + "{\n" });
             dynPropIds.forEach(dynPropId => {
@@ -290,9 +383,9 @@ export default class DataRodComponent {
             rawText.push({ text: i + "dyn-props: []\n" });
         }
 
-        rawText.push({ text: "}"})
+        rawText.push({ text: "}"});
 
-         player.sendMessage({ rawtext: rawText })
+        player.sendMessage({ rawtext: rawText });
     }
 
     /**
@@ -339,9 +432,20 @@ export default class DataRodComponent {
      */
     SetDummyData(entity)
     {
-        entity.addTag("dummy");
-        entity.setDynamicProperty("dummy", this.m_dummyCounter);
-        entity.setDynamicProperty()
-        this.m_dummyCounter += 1;
+        entity.addTag("dummy_tag");
+        entity.setDynamicProperty("mypack:dummy", DataRodComponent.m_dummyCounter);
+        DataRodComponent.m_dummyCounter += 1;
+    }
+
+    ListBlockData(block, player)
+    {
+        var i = "   ";
+        var i2 = i + i;
+        var rawText = [ { text: "§7Block\n{\n" } ];
+        rawText.push({ text: i + "§3" });
+        rawText.push({ translate: utils.tr(block) });
+        rawText.push({ text: "§7\n" });
+        rawText.push({ text: "}"});
+        player.sendMessage({ rawtext: rawText });
     }
 }

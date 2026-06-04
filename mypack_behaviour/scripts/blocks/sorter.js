@@ -34,25 +34,17 @@ export default class SorterComponent {
      * @param {CustomComponentParameters} params
      */
     onPlayerInteract(event, params) {
-        
-        //chat("sorter used");
-        
         const player = event.player;
         const origin = event.block.location;
         const sorting = this.m_sorting;
         
         if(!player) return;
-
         if(this.IsHoldingSortRod(player)) return;
 
-        if(player.isSneaking)
-        {
-            sorting.TransferToContainers(player, origin, false);
-        }
-        else
-        {
-            sorting.TransferToContainers(player, origin, true);
-        }
+        const deposit = !player.isSneaking;
+        sorting.MessageBegin();
+        sorting.TransferToContainers(player, origin, deposit);
+        sorting.MessageEnd(player);
     }
 
     /** OnPlaceEvent handler
@@ -93,18 +85,10 @@ export default class SorterComponent {
 
             var hopperDir = hopper.permutation.getState("facing_direction");
             var isFacingTowards = facingDirs.at(dir) === hopperDir;
-            //chat("is facing: " + facing);
             if(isFacingTowards)
             {
-                //chat("hopper in dir " + dir + " is facing towards");
                 sorting.DepositFromHopper(hopper, origin);
             }
-            else
-            {
-                //chat("hopper in dir " + dir + " is facing away");
-            }
-
-            //chat("---")
         }
 
 

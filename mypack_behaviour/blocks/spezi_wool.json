@@ -8,6 +8,7 @@
       }
     },
     "components": {
+      "minecraft:friction": 0.1,
       "minecraft:custom_components": [
         "mypack:spezi_block_component"
       ]

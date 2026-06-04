@@ -3,33 +3,55 @@
   "header": {
     "name": "mypack",
     "description": "mypack behaviour pack",
-    "uuid": "3958f9a2-96e4-4db0-a907-145d065cd7fa",
+    "uuid": "3958f9a2-96e4-4db0-a907-145d165cd7ae",
     "version": [0, 0, 1],
-    "min_engine_version": [1, 16, 0]
+    "min_engine_version": [1, 21, 0]
   },
   "modules": [
     {
       "description": "mypack data module",
       "type": "data",
-      "uuid": "1b85a99a-bfeb-481d-8a77-b5cda182e7da",
+      "uuid": "1b85a99a-bfeb-4811-8a76-145d065cd7ad",
       "version": [0, 0, 1]
     },
     {
       "description": "mypack script module",
       "type": "script",
-      "uuid": "db068186-8115-4baf-9e29-d411afbdb7cc",
+      "uuid": "db068186-8115-4baf-9e29-146d065cd7be",
       "version": [0, 0, 1],
       "entry": "scripts/main.js"
+    }
+  ],
+  // settings dont work yet (ui draws no controls ingame)
+  "settings": [
+    {
+      "type": "label",
+      "text": "This pack features §l§6EXPLOSION HANDS§r and a §l§6SLIDER§r to control the explosion power."
+    },
+    {
+      "type": "toggle",
+      "text": "Explosion Hands",
+      "name": "mypack:explosion_hands",
+      "default": true
+    },
+    {
+      "type": "slider",
+      "text": "Explosion Power",
+      "name": "mypack:explosion_power",
+      "min": 1,
+      "max": 4,
+      "step": 1,
+      "default": 3
     }
   ],
   "dependencies": [
       {
         "module_name":"@minecraft/server",
-        "version":"1.19.0"
+        "version":"2.6.0"
       },
       {
         "module_name": "@minecraft/server-ui",
-        "version": "1.3.0"
+        "version": "2.0.0"
       }
    ]
 }

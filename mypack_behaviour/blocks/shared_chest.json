@@ -19,10 +19,15 @@
                 "identifier": "geometry.shared_chest"
             },
             "minecraft:material_instances": {
-                "*": { "texture": "shared_chest" }
+                "*": {
+                    "texture": "shared_chest"
+                }
             },
             "minecraft:item_visual": {
                 "geometry": {
+                    // Hand block model is flipped 180 deg from placing orientation
+                    // Thus a second correctly rotated geometry is added to display it
+                    // facing the correct way forward when held in hand
                     "identifier": "geometry.shared_chest_in_hand"
                 },
                 "material_instances": {
@@ -78,6 +83,7 @@
             ]
         },
         "permutations": [
+            // Rotate the block model correctly acording to its placement direction
             {
                 "condition": "query.block_state ('minecraft:cardinal_direction') == 'north'",
                 "components": {

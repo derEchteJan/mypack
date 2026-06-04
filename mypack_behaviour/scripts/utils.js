@@ -7,6 +7,7 @@ import {
     ItemStack,
     EntityComponentTypes,
     EquipmentSlot,
+    EntityItemComponent
 } from "@minecraft/server";
 
 // --- MANUAL TRANSLATION KEY REDEFINITIONS ---
@@ -66,6 +67,14 @@ export default class utils
         }
         if(object instanceof Entity)
         {
+            const itemComponent = object.getComponent(EntityItemComponent.componentId);
+            if(itemComponent)
+            {
+                // for item stack entities log the item name contained inside
+                const stack = itemComponent.itemStack;
+                return this.tr(stack);
+            }
+
             var remapped = entity_loc_keys.get(object.typeId);
             if(remapped) return remapped;
 

@@ -8,10 +8,7 @@
         "textures": {
             "up": "spezi_wool_top",
             "down": "spezi_wool_bottom",
-            "north": "spezi_wool_side",
-            "south": "spezi_wool_side",
-            "east": "spezi_wool_side",
-            "west": "spezi_wool_side"
+            "side": "spezi_wool_side"
         },
         "isotropic": false // isotropic false: fixed orientation, true: random rotation
     },
@@ -20,10 +17,7 @@
         "textures": {
             "up": "limo_zitrone_wool_top",
             "down": "limo_zitrone_wool_bottom",
-            "north": "limo_zitrone_wool_side",
-            "south": "limo_zitrone_wool_side",
-            "east": "limo_zitrone_wool_side",
-            "west": "limo_zitrone_wool_side"
+            "side": "limo_zitrone_wool_side"
         },
         "isotropic": false
     },
@@ -32,10 +26,7 @@
         "textures": {
             "up": "limo_orange_wool_top",
             "down": "limo_orange_wool_bottom",
-            "north": "limo_orange_wool_side",
-            "south": "limo_orange_wool_side",
-            "east": "limo_orange_wool_side",
-            "west": "limo_orange_wool_side"
+            "side": "limo_orange_wool_side"
         },
         "isotropic": false
     },
