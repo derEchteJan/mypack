@@ -12,7 +12,8 @@ import {
     ItemStack,
     EntityLeashableComponent,
     EntityProjectileComponent,
-    EntityHealthComponent
+    EntityHealthComponent,
+    PlayerInteractWithEntityBeforeEvent
 } from "@minecraft/server";
 
 import { ActionFormData } from "@minecraft/server-ui";
@@ -26,49 +27,100 @@ import Vector3 from "../vector.js";
 
 // --- DRAG ENTITY TEST ---
 
+var s_isDragging = false;
 var s_target = null;
 var s_player = null;
+const s_dragDistance = 2.2;
+const s_dragStopThres = 0.8;
+const s_dragUpdateInterval = 2;
 
-function updateDrag() {
-  var tick = system.currentTick;
-  // put ontick handlers here if required
-  // ...
-  if(s_target)
-  {
-    s_target.clearVelocity();
-  }
-  if(tick % 3 == 0)
-  {
+function BeginDrag(entity, player)
+{
+    s_isDragging = true;
+    s_target = entity;
+    s_player = player;
+    chat("begin drag");
+}
+
+function EndDrag()
+{
+    s_isDragging = false;
+    s_target = null;
+    s_player = null;
+    chat("end drag");
+}
+
+function UpdateDrag() {
+
+    if(s_target && !s_target.isValid)
+    {
+        s_target = null;
+        s_player = null;
+        return;
+    }
+
     if(s_player && s_target)
     {
-      let targetDistance = 2.2; // distance from player in look direction where entity is moved to
-      let viewDir = s_player.getViewDirection();
-      //log("view dir: " + viewDir.x + ", " + viewDir.y + ", " + viewDir.z);
-      let playerPos = s_player.location;
-      var targetPos = playerPos;
-      targetPos.y += 1;
-      targetPos.x += viewDir.x * targetDistance;
-      targetPos.y += viewDir.y * targetDistance;
-      targetPos.z += viewDir.z * targetDistance;
-      
-      if(Vector3.distance(s_target.location, targetPos) > 0.5)
-      {
-        let speed = 0.8;
-        var impulse = new Vector3();
+        let viewDir = s_player.getViewDirection();
+        //log("view dir: " + viewDir.x + ", " + viewDir.y + ", " + viewDir.z);
+        let playerPos = s_player.location;
+        var targetPos = playerPos;
+        targetPos.y += 1;
+        targetPos.x += viewDir.x * s_dragDistance;
+        targetPos.y += viewDir.y * s_dragDistance;
+        targetPos.z += viewDir.z * s_dragDistance;
+        
+        s_target.addEffect('slowness', s_dragUpdateInterval + 2, { amplifier: 255, showParticles: false });
+        s_target.addEffect('slow_falling', s_dragUpdateInterval + 2, { amplifier: 255, showParticles: false });
 
-        impulse.x = targetPos.x - s_target.location.x;
-        impulse.y = targetPos.y - s_target.location.y;
-        impulse.z = targetPos.z - s_target.location.z;
-        impulse.normalize();
-        impulse.scale(speed);
+        const dist = Vector3.distance(s_target.location, targetPos);
+        if(dist >= s_dragStopThres)
+        {
+            chat("distance: " + dist);
+            s_target.clearVelocity();
 
-        s_target.clearVelocity();
-        s_target.applyImpulse(impulse);
-      }      
+            let speed = 0.8;
+            var impulse = new Vector3();
+
+            impulse.x = targetPos.x - s_target.location.x;
+            impulse.y = targetPos.y - s_target.location.y;
+            impulse.z = targetPos.z - s_target.location.z;
+
+            impulse.normalize();
+            impulse.scale(speed);
+
+            s_target.applyImpulse(impulse);
+        }
+        else
+        {
+            s_target.clearVelocity();
+        }
     }
-  }
-  system.run(updateDrag);
 }
+
+/**
+ * @param {PlayerInteractWithEntityBeforeEvent} event 
+ * @param {*} params 
+ */
+function OnInteractBefore(event, params)
+{
+    if(event.itemStack && event.target.typeId !== 'minecraft:player' && event.itemStack.typeId === 'mypack:data_rod')
+    {
+        event.cancel = true;
+        if(s_isDragging)
+        {
+            EndDrag();
+        }
+        else
+        {
+            BeginDrag(event.target, event.player);
+        }
+    }
+}
+
+system.runInterval(UpdateDrag, s_dragUpdateInterval);
+
+world.beforeEvents.playerInteractWithEntity.subscribe(OnInteractBefore);
 
 //system.run(mainTick);
 
@@ -79,13 +131,13 @@ class Mode
 {
     static list            = "list";            // list all tags and dynmaic properties of nearest non player entity
     static clear           = "clear";           // remove all tags and dynmaic properties from nearest non player entity
-    static clear_pack_only = "clear_pack_only";
     static set_dummy       = "set_dummy";
     static list_block      = "list_block";
+    static grab            = "grab"
 
     static _prop_id      = "mypack:data_rod_mode";
-    static _values       = [ Mode.list,   Mode.clear,       Mode.clear_pack_only,     Mode.set_dummy,       Mode.list_block];
-    static _displayNames = [ "List Data", "Clear All Data", "Clear Data (Pack Only)", "Set Dummy Property", "List Block data" ];
+    static _values       = [ Mode.list,   Mode.clear,       Mode.set_dummy,       Mode.list_block,   Mode.grab ];
+    static _displayNames = [ "List Data", "Clear All Data", "Set Dummy Property", "List Block data", "Grab Entity" ];
 
     /**
      * @param {string} mode
@@ -151,6 +203,7 @@ export default class DataRodComponent {
      */
     onUse(event, params) {
         const player = event.source;
+        const entity = this.GetLookedAtEntity(player);
         if(player.isSneaking)
         {
             this.PresentModeForm(player);
@@ -158,7 +211,7 @@ export default class DataRodComponent {
         else
         {
             const mode = this.GetMode(player);
-            var entity = this.GetLookedAtEntity(player);
+
             if(!entity) entity = this.GetNearestEntity(player.location, player.dimension);
 
             if(!entity) { chat("no entity found"); return; }
@@ -169,11 +222,10 @@ export default class DataRodComponent {
                 this.ListData(entity, player);
                 this.HighlightEntity(entity);
             }
-            else if(mode === Mode.clear || mode === Mode.clear_pack_only)
+            else if(mode === Mode.clear)
             {
                 if(!entity) { chat("no entity found"); return; }
-                var packOnly = mode === Mode.clear_pack_only;
-                this.ClearData(entity, packOnly);
+                this.ClearData(entity, false);
                 chat(packOnly ? "cleared pack data" : "cleared data");
             }
             else if(mode === Mode.set_dummy)
@@ -191,10 +243,17 @@ export default class DataRodComponent {
             {
                 return;
             }
+            else if(mode === Mode.drag)
+            {
+                return;
+            }
             else
             {
                 chat("mode " + mode + " not implemented");
             }
+
+            if(s_isDragging)
+                EndDrag();
         }
     }
 

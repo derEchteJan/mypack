@@ -43,6 +43,8 @@ export default class SpeziBlockComponent {
      */
     onStepOn(event, params)
     {
+        if(!utils.debug) return;
+
         const entity = event.entity;
         //let block = event.block;
         //let location = block.location;
@@ -78,9 +80,13 @@ export default class SpeziBlockComponent {
      * @param {CustomComponentParameters} params
      * @returns 
      */
-    onPlayerInteract(event, params) {
-        if (!event.player) return;
-        var player = event.player;
+    onPlayerInteract(event, params)
+    {
+        if(!utils.debug) return;
+        
+        const player = event.player;
+
+        if(!player) return;
 
         var selectedSlot = player.selectedSlotIndex;
         var playerInventory = player.getComponent(EntityInventoryComponent.componentId);
@@ -93,8 +99,8 @@ export default class SpeziBlockComponent {
             var itemName = heldItem.typeId;
             if(itemName === "mypack:test")
             {
-                chat("vacuum");
-                this.Vacuum(player);
+                chat("vacuum test");
+                //this.Vacuum(player);
             }
             if(itemName === "minecraft:diamond")
             {
@@ -110,66 +116,6 @@ export default class SpeziBlockComponent {
         else // empty hand
         {
         }
-    }
-
-    /**
-     * @param {Player} player 
-     */
-    Vacuum(player)
-    {
-        if(!player) return;
-
-        const query = {
-            location: player.location,
-            maxDistance: this.m_vacuumRange,
-            type: "minecraft:item"
-        };
-
-        var entities = player.dimension.getEntities(query);
-        var inventoryContainer = player.getComponent(EntityInventoryComponent.componentId).container;
-        var pickupCount = 0;
-
-        if(this.m_instantVacuum)
-        {
-            entities.forEach(entity => {
-                var itemComponent = entity.getComponent(EntityItemComponent.componentId);
-                if(itemComponent)
-                {
-                    var itemStack = itemComponent.itemStack;
-                    entity.kill();
-                    inventoryContainer.addItem(itemStack);
-                    pickupCount += 1;
-                }
-            });
-        }
-        else
-        {
-            const downscale = 4;
-
-            entities.forEach(entity => {
-
-                var to = player.location;
-                var from = entity.location;
-
-                var dx = to.x - from.x
-                var dy = to.y - from.y;
-                var dz = to.z - from.z;
-
-                //chat("coords: " + " dx:"+dx+" dy:"+dy+" dz:"+dz);
-                //var len = Math.sqrt(dx * dx + dy * dy);
-                //len = Math.sqrt(len * len + dz * dz);
-
-                dx /= downscale;
-                dy /= downscale;
-                dz /= downscale;
-
-                entity.applyImpulse({x: dx, y: dy, z: dz});
-
-                pickupCount += 1;
-            });
-        }
-
-        chat("vacuumed up " + pickupCount + " items");
     }
 
     /** Transfers one stack of items from lhs to rhs

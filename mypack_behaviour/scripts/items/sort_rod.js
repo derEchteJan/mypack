@@ -8,6 +8,7 @@ import {
     ItemComponentUseEvent,
     ItemComponentUseOnEvent,
     BlockInventoryComponent,
+    PlayerInteractWithBlockBeforeEvent,
 } from "@minecraft/server";
 
 import { ActionFormData } from "@minecraft/server-ui";
@@ -34,10 +35,11 @@ class Mode
     static compact = "compact";
     static tally = "tally";
     static swap = "swap";
+    static transfer = "transfer";
 
     static _prop_id = "mypack:sort_rod_mode";
-    static _values =       [ Mode.sort,    Mode.compact,    Mode.tally,    Mode.swap       ];
-    static _displayNames = [ "Sort Items", "Compact Items", "Tally Items", "Swap Contents" ];
+    static _values =       [ Mode.sort,    Mode.transfer,    Mode.tally,    Mode.swap       ];
+    static _displayNames = [ "Sort Items", "Transfer Items", "Tally Items", "Swap Contents" ];
 
     /**
      * @param {string} mode
@@ -51,20 +53,42 @@ class Mode
     }
 }
 
+/**
+ * 
+ * @param {PlayerInteractWithBlockBeforeEvent} event 
+ * @param {*} params 
+ */
+function OnBeforeInteract(event, params)
+{
+    if(event.itemStack && event.itemStack.typeId === 'mypack:sort_rod')
+    {
+        
+        const component = event.itemStack.getComponent('mypack:sort_rod_component');
+        if(component)
+        {
+            event.cancel = true;
+            system.runTimeout(() => {
+                SortRodComponent.OnUseOn(event.player, event.block);
+            });
+
+        }
+    }
+}
+
+world.beforeEvents.playerInteractWithBlock.subscribe(OnBeforeInteract);
+
 /** SortRodComponent
  * @implements {ItemCustomComponent}
  */
 export default class SortRodComponent {
 
     // item mode
-    m_sorting = new Sorting();
-    m_otherContainerPropId = "mypack:sort_rod_selected_container";
-    m_cooldownTicks = 7;
-    m_cooldownTimestamp = -1;
+    static s_sorting = new Sorting();
+    static s_otherContainerPropId = "mypack:sort_rod_selected_container";
+    static s_cooldownTicks = 7;
+    static s_cooldownTimestamp = -1;
 
-    constructor() {
-        this.onUseOn = this.onUseOn.bind(this);
-    }
+    constructor() {}
 
     /**
      * OnUseOnEvent handler - called when item is used on a block
@@ -73,11 +97,19 @@ export default class SortRodComponent {
      */
     onUseOn(event, params)
     {
-        if(!this.CheckCooldown()) return;
+       SortRodComponent.OnUseOn(event.source, event.block);
+    }
 
-        const sorting = this.m_sorting;
-        const player = event.source;
-        const block = event.block;
+    /**
+     * @param {Player} player 
+     * @param {Block} block 
+     * @returns 
+     */
+    static OnUseOn(player, block)
+    {
+        if(!SortRodComponent.CheckCooldown()) return;
+
+        const sorting = SortRodComponent.s_sorting;
 
         if(!player || !block) return;
 
@@ -85,13 +117,14 @@ export default class SortRodComponent {
         if(inventory && inventory.container)
         {
             const container = inventory.container;
-            var mode = this.GetMode(player);
+            var mode = SortRodComponent.GetMode(player);
             if(mode)
             {
-                if(mode === Mode.sort)    this.Sort(container, block, player);
-                if(mode === Mode.compact) this.Compact(container, block, player);
-                if(mode === Mode.tally)   this.Tally(container, block, player);
-                if(mode === Mode.swap)    this.Swap(container, block, player);
+                if(mode === Mode.sort)    SortRodComponent.Sort(container, block, player);
+                if(mode === Mode.transfer) SortRodComponent.Transfer(container, player, !player.isSneaking);
+                //if(mode === Mode.compact) SortRodComponent.Compact(container, block, player);
+                if(mode === Mode.tally)   SortRodComponent.Tally(container, block, player);
+                if(mode === Mode.swap)    SortRodComponent.Swap(container, block, player);
             }
         }
         else
@@ -111,9 +144,9 @@ export default class SortRodComponent {
      * @param {Block} block
      * @param {Player} player
      */
-    Sort(container, block, player)
+    static Sort(container, block, player)
     {
-        const sorting = this.m_sorting;
+        const sorting = SortRodComponent.s_sorting;
 
         sorting.CompactItems(container);
 
@@ -129,11 +162,10 @@ export default class SortRodComponent {
      * @param {Block} block
      * @param {Player} player
      */
-    Compact(container, block, player)
+    static Compact(container, block, player)
     {
-        const sorting = this.m_sorting;
+        const sorting = SortRodComponent.s_sorting;
         sorting.CompactItems(container);
-
         sorting.HighlightContainer(block);
         player.sendMessage({ rawtext: [ { translate: "§7Compacted Container§r" } ] });
     }
@@ -143,12 +175,36 @@ export default class SortRodComponent {
      * @param {Block} block
      * @param {Player} player
      */
-    Tally(container, block, player)
+    static Transfer(container, player, deposit)
     {
-        const sorting = this.m_sorting;
-        var tally = sorting.TallyItems(container, true);
+        const sorting = SortRodComponent.s_sorting;
+        sorting.MessageBegin();
+        var transferedAny = false;
+        if(deposit)
+        {
+            transferedAny = sorting.DepositToContainer(player, container);
+        }
+        else
+        {
+            transferedAny = sorting.TakeFromContainer(player, container);
+        }
+        if(transferedAny)
+        {
+            sorting.TransferBeginMessage(player, deposit);
+        }
+        sorting.MessageEnd();
+    }
 
+    /**
+     * @param {Container} container
+     * @param {Block} block
+     * @param {Player} player
+     */
+    static Tally(container, block, player)
+    {
+        const sorting = SortRodComponent.s_sorting;
         player.sendMessage({ rawtext: [ { text: "§7Contents:§r" } ] });
+        var tally = sorting.TallyItems(container, true);
         sorting.TallyMessage(player, tally);
     }
 
@@ -157,11 +213,10 @@ export default class SortRodComponent {
      * @param {Block} block
      * @param {Player} player
      */
-    Swap(container, block, player)
+    static Swap(container, block, player)
     {
-        const sorting = this.m_sorting;
-
-        var selected = this.GetSelectedContainer(player);
+        const sorting = SortRodComponent.s_sorting;
+        var selected = SortRodComponent.GetSelectedContainer(player);
         if(selected)
         {
             var size = Math.min(container.size, selected.container.size);
@@ -169,12 +224,12 @@ export default class SortRodComponent {
             {
                 container.swapItems(i, i, selected.container);
             }
-            this.SwapFeedback(player, block, selected.block);
-            this.SetSelectedContainer(null, player);
+            SortRodComponent.SwapFeedback(player, block, selected.block);
+            SortRodComponent.SetSelectedContainer(null, player);
         }
         else
         {
-            this.SetSelectedContainer(block, player);
+            SortRodComponent.SetSelectedContainer(block, player);
         }
     }
 
@@ -184,7 +239,7 @@ export default class SortRodComponent {
     /**
      * @param {Player} player
      */
-    PresentModeForm(player) {
+    static PresentModeForm(player) {
         var form = new ActionFormData()
             .title("Sort Rod Mode")
             .body("Change what happens when you press on a chest");
@@ -198,7 +253,7 @@ export default class SortRodComponent {
         form.show(player).then((result) => {
             if (result.canceled) return -1;
             var mode = Mode._values[result.selection];
-            this.SetMode(player, mode);
+            SortRodComponent.SetMode(player, mode);
         });
     }
 
@@ -206,17 +261,17 @@ export default class SortRodComponent {
      * @param {Player} player
      * @param {string} mode
      */
-    SetMode(player, mode)
+    static SetMode(player, mode)
     {
         player.setDynamicProperty(Mode._prop_id, mode);
-        this.ModeChangedFeedback(player, mode);
+        SortRodComponent.ModeChangedFeedback(player, mode);
     }
 
     /**
      * @param {Player} player
      * @returns {string | undefined}
      */
-    GetMode(player)
+    static GetMode(player)
     {
         return player.getDynamicProperty(Mode._prop_id);
     }
@@ -225,7 +280,7 @@ export default class SortRodComponent {
      * @param {Player} player
      * @param {string} mode
      */
-    ModeChangedFeedback(player, mode)
+    static ModeChangedFeedback(player, mode)
     {
         const modeName = Mode.DisplayName(mode);
         const rawMessage = { rawtext: [ { text: "Set Mode §3'" }, { translate: modeName }, { text: "'§r" } ] };
@@ -236,7 +291,6 @@ export default class SortRodComponent {
             stack.setLore(rawLore);
             utils.SetHeldItem(player, stack, /*override:*/ true);
         }
-
         player.sendMessage(rawMessage);
     }
 
@@ -247,19 +301,19 @@ export default class SortRodComponent {
      * @param {Block | null} block 
      * @param {Player} player 
      */
-    SetSelectedContainer(block, player)
+    static SetSelectedContainer(block, player)
     {
-        const sorting = this.m_sorting;
+        const sorting = SortRodComponent.s_sorting;
         if(block)
         {
-            player.setDynamicProperty(this.m_otherContainerPropId, block.location);
+            player.setDynamicProperty(SortRodComponent.s_otherContainerPropId, block.location);
             sorting.HighlightContainer(block);
             const rawMessage = { rawtext: [ { text: "§7Swapping: Selected §r§3'" }, { translate: block.typeId }, { text: "'§r" } ] };
             player.sendMessage(rawMessage);
         }
         else
         {
-            player.setDynamicProperty(this.m_otherContainerPropId, null);
+            player.setDynamicProperty(SortRodComponent.s_otherContainerPropId, null);
         }
     }
 
@@ -267,10 +321,10 @@ export default class SortRodComponent {
      * @param {Player} player
      * @returns {ContainerBlock | undefined}
      */
-    GetSelectedContainer(player)
+    static GetSelectedContainer(player)
     {
         var result = null;
-        var location = player.getDynamicProperty(this.m_otherContainerPropId);
+        var location = player.getDynamicProperty(SortRodComponent.s_otherContainerPropId);
         if(location)
         {
             var block = player.dimension.getBlock(location);
@@ -286,14 +340,14 @@ export default class SortRodComponent {
     /** Returns true if cooldown passed
      * @returns {boolean}
      */
-    CheckCooldown()
+    static CheckCooldown()
     {
         var result = false;
         var tick = system.currentTick;
-        if(this.m_cooldownTimestamp == -1 || tick - this.m_cooldownTimestamp > this.m_cooldownTicks)
+        if(SortRodComponent.s_cooldownTimestamp == -1 || tick - SortRodComponent.s_cooldownTimestamp > SortRodComponent.s_cooldownTicks)
         {
             result = true;
-            this.m_cooldownTimestamp = tick;
+            SortRodComponent.s_cooldownTimestamp = tick;
         }
         return result;
     }
@@ -305,9 +359,9 @@ export default class SortRodComponent {
      * @param {Block} block1 
      * @param {Block} block2 
      */
-    SwapFeedback(player, block1, block2)
+    static SwapFeedback(player, block1, block2)
     {
-        const sorting = this.m_sorting;
+        const sorting = SortRodComponent.s_sorting;
         sorting.HighlightContainer(block1);
         sorting.HighlightContainer(block2);
         const name1 = utils.tr(block1);

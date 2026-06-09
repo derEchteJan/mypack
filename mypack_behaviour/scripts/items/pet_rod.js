@@ -8,6 +8,7 @@ import {
     EntityItemComponent,
 } from "@minecraft/server";
 
+import utils from '../utils.js';
 import { log, log_err, chat } from '../logging.js'
 import Pets from "../handlers/pets.js";
 
@@ -105,6 +106,8 @@ export default class PetRodComponent {
     {
         const player = event.source;
         const pets = this.m_pets;
+
+        if(!utils.debug) return;
         
         if(player.isSneaking)
         {

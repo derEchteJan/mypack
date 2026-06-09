@@ -8,6 +8,7 @@ import {
     EntityItemComponent,
 } from "@minecraft/server";
 
+import utils from '../utils.js'
 import { log, log_err, chat } from '../logging.js'
 import Pets from "../handlers/pets.js";
 
@@ -38,7 +39,9 @@ export default class KennelComponent {
     onPlayerInteract(event, params) {
         const player = event.player;
         const pets = this.m_pets;
+
         if(!player) return;
+        if(!utils.debug) return;
 
         //chat("kennel used");
 

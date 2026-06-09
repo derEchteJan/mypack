@@ -39,7 +39,7 @@ export default class SorterComponent {
         const sorting = this.m_sorting;
         
         if(!player) return;
-        if(this.IsHoldingSortRod(player)) return;
+        if(this.IsHoldingSortRod(player)) return; // Sort rod handles special interaction
 
         const deposit = !player.isSneaking;
         sorting.MessageBegin();
@@ -78,7 +78,7 @@ export default class SorterComponent {
         var facingDirs = [ 3, 4, 2, 5 ];
         var hopper = blocks.at(dir);
 
-        if(hopper && hopper.typeId === "minecraft:hopper")
+        if(hopper && hopper.isValid && hopper.typeId === "minecraft:hopper")
         {
             var container = hopper.getComponent(BlockInventoryComponent.componentId).container;
             if(!container) return;
@@ -90,8 +90,6 @@ export default class SorterComponent {
                 sorting.DepositFromHopper(hopper, origin);
             }
         }
-
-
     }
 
     /**

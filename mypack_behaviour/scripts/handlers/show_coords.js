@@ -6,8 +6,15 @@ import {
     Entity,
     Player,
     EntityComponentTypes,
-    EquipmentSlot
+    EquipmentSlot,
+    PlayerHotbarSelectedSlotChangeAfterEvent,
+    ItemStartUseAfterEvent,
+    ItemStopUseAfterEvent
 } from "@minecraft/server"
+
+import { chat } from '../logging.js'
+
+const s_updateInterval = 3;
 
 /** ShowCoords handler class,
  *  Displays coordinates to players while they hold certain items like maps
@@ -20,28 +27,13 @@ export default class ShowCoords {
 
     static UpdatePlayers() {
         world.getPlayers().forEach((player) => {
-            const equipment = player.getComponent(EntityComponentTypes.Equippable);
-            if (equipment)
+            if(player.showPosition)
             {
-                var showCoords = false;
-                var showAimPos = false;
-                
-                var mainHand = equipment.getEquipment(EquipmentSlot.Mainhand);
-                showCoords |= mainHand && ShowCoords.IsNavItem(mainHand.typeId);
-                
-                var offHand = equipment.getEquipment(EquipmentSlot.Offhand);
-                showCoords |= offHand && ShowCoords.IsNavItem(offHand.typeId);
-
-                showAimPos = mainHand.typeId === 'minecraft:spyglass';
-
-                if(showCoords)
-                {
-                    ShowCoords.DisplayPosition(player);
-                }
-                if(showAimPos)
-                {
-                    ShowCoords.DisplayLookAtPos(player);
-                }
+                ShowCoords.DisplayPosition(player);
+            }
+            if(player.showDistance)
+            {
+                ShowCoords.DisplayDistance(player);
             }
         });
     }
@@ -58,7 +50,7 @@ export default class ShowCoords {
         world.getDimension("overworld").runCommand("title \"" + player.name + "\" actionbar " + text);
     }
 
-    static DisplayLookAtPos(player)
+    static DisplayDistance(player)
     {
         const hit = player.getBlockFromViewDirection();
         if(hit && hit.block)
@@ -86,6 +78,33 @@ export default class ShowCoords {
     }
 
     /**
+     * @param {Player} player 
+     */
+    static BeginDisplayDistance(player)
+    {
+        player.showDistance = true;
+    }
+
+    /**
+     * @param {Player} player 
+     */
+    static BeginDisplayPosition(player)
+    {
+        player.showPosition = true;
+    }
+
+    /**
+     * @param {Player} player 
+     */
+    static StopDisplayAny(player)
+    {
+        player.showPosition = false;
+        player.showDistance = false;
+        world.getDimension("overworld").runCommand("title \"" + player.name + "\" reset"); // does nothing, great
+        world.getDimension("overworld").runCommand("title \"" + player.name + "\" clear");
+    }
+
+    /**
      * Returns wether given item id qualifies as a navigation item
      * that shows coords when held
      * @param {string} itemId 
@@ -98,8 +117,65 @@ export default class ShowCoords {
             || itemId === "minecraft:recovery_compass"
     }
 
+    /**
+     * @param {PlayerHotbarSelectedSlotChangeAfterEvent} event 
+     * @param {object} params
+     */
+    static OnHeldItemChanged(event, params)
+    {
+        const player = event.player;
+        if(event.itemStack)
+        {
+            const itemId = event.itemStack.typeId;
+            if(ShowCoords.IsNavItem(itemId))
+            {
+                ShowCoords.BeginDisplayPosition(player);
+            }
+            else
+            {
+                ShowCoords.StopDisplayAny(player);
+            }
+        }
+        else
+        {
+            ShowCoords.StopDisplayAny(player);
+        }
+    }
+
+    /**
+     * @param {ItemStartUseAfterEvent} event 
+     * @param {object} params
+     */
+    static OnItemStartUse(event, params)
+    {
+        const player = event.source;
+        const itemId = event.itemStack.typeId;
+        if(itemId === 'minecraft:spyglass')
+        {
+            ShowCoords.BeginDisplayDistance(player);
+        }
+    }
+
+    /**
+     * @param {ItemStopUseAfterEvent} event 
+     * @param {object} params
+     */
+    static OnItemStopUse(event, params)
+    {
+        if(!event.itemStack) return;
+        const player = event.source;
+        const itemId = event.itemStack.typeId;
+        if(itemId === 'minecraft:spyglass')
+        {
+            ShowCoords.StopDisplayAny(player);
+        }
+    }
+
     RegisterHandlers()
     {
-        system.runInterval(ShowCoords.UpdatePlayers, 10);
+        system.runInterval(ShowCoords.UpdatePlayers, s_updateInterval);
+        world.afterEvents.playerHotbarSelectedSlotChange.subscribe(ShowCoords.OnHeldItemChanged);
+        world.afterEvents.itemStartUse.subscribe(ShowCoords.OnItemStartUse);
+        world.afterEvents.itemStopUse.subscribe(ShowCoords.OnItemStopUse);
     }
 }

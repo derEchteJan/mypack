@@ -36,7 +36,7 @@ import ShowCoords from "./handlers/show_coords.js"
 
 // --- LOAD PACK SETTINGS ---
 
-utils.debug = true; // set debug mode for logging etc.
+utils.debug = false; // set debug mode for logging etc.
 
 // --- REGISTER EVENT HANDLERS ---
 
@@ -46,29 +46,40 @@ afk.RegisterHandlers();
 var daytime = new Daytime(); // daytime handler to elongate days
 daytime.RegisterHandlers();
 
-var pets = new Pets(); // pet handler for pet rod and kennel
-pets.RegisterHandlers();
+var pets = new Object(); // pet handler for pet rod and kennel
+if(utils.debug)
+{
+  pets = new Pets();
+  pets.RegisterHandlers();
+}
 
 var showCoords = new ShowCoords(); // displays coordinates when holding maps etc.
 showCoords.RegisterHandlers();
 
-
 // --- CROSSBOW TEST ---
 
-//world.afterEvents.projectileHitEntity.subscribe(event => {
-//  const projectile = event.projectile;
-//  const entity = event.getEntityHit().entity;
-//
-//  if(!entity || !projectile) return;
-//  if(!entity.isValid() || !projectile.isValid()) return;
-//
-//  if(entity.getDynamicProperty("mypack:arrow1") === true)
-//  {
-//    chat("special arrow hit " + entity.typeId());
-//  }
-//});
+/*
+world.afterEvents.projectileHitEntity.subscribe(event => {
+  const projectile = event.projectile;
+  const entity = event.getEntityHit().entity;
+
+  if(!entity || !projectile) return;
+  if(!entity.isValid() || !projectile.isValid()) return;
+
+  if(entity.getDynamicProperty("mypack:arrow1") === true)
+  {
+    chat("special arrow hit " + entity.typeId());
+  }
+});
+*/
 
 // --- HOAMING ARROW TEST ---
+
+var s_arrow = null;
+var s_target = null;
+var s_impulseCounter = 0;
+var s_impulseRepeatCount = 12;
+var s_impulseInterval = 2;
 
 /**
  * @param { Vector3 } origin
@@ -93,9 +104,6 @@ function GetTarget(origin)
 function ApplyImpulse(arrow, target)
 {
   s_impulseCounter += 1;
-
-  //if(3 > s_impulseCounter)
-  //  return;
 
   var targetLocation = new Vector3(target.location);
   var targetVel = new Vector3(target.getVelocity());
@@ -131,16 +139,10 @@ function ApplyImpulse(arrow, target)
   var newVel = new Vector3(arrow.getVelocity());
   newVel.round();
   chat("new vel: " + newVel.to_string());
-  //arrow.clearVelocity();
-  //newVel.y = 0;
-  //arrow.applyImpulse(newVel);
 }
 
-var s_arrow = null;
-var s_target = null;
-var s_impulseCounter = 0;
-var s_impulseRepeatCount = 12;
-var s_impulseInterval = 2;
+if(utils.debug)
+{
 
 world.afterEvents.entitySpawn.subscribe(event => {
   const entity = event.entity;
@@ -152,7 +154,7 @@ world.afterEvents.entitySpawn.subscribe(event => {
       const owner = projectile.owner;
       if(owner && owner.typeId === 'minecraft:player')
       {
-        chat("\nshot arrow");
+        //chat("\nshot arrow");
         const arrow = entity;
         //arrow.applyImpulse({x: 0, y: 2, z: 0});
         const target = GetTarget(arrow.location);
@@ -179,34 +181,9 @@ system.runInterval(() => {
   }
 }, s_impulseInterval)
 
-function VectorTest()
-{
-  var c = new Vector3(4, 3);
-  var a = new Vector3(c);
-  var b = new Vector3(2, 8);
-
-  chat("a: " + a.to_string());
-  chat("b: " + b.to_string());
-
-  chat("projecting a onto b");
-
-  a.project_onto(b);
-
-  chat("a result: " + a.to_string());
-  chat("b after: " + b.to_string());
-
-  chat("ortho projecting a onto b");
-
-  a = new Vector3(4, 3);
-  a.ortho_project_onto(b);
-
-  chat("a result: " + a.to_string());
-  chat("b after: " + b.to_string());
 }
 
-//system.runTimeout(VectorTest, 20);
-
-// --- Spear Test ---
+// --- SPEAR TEST ---
 
 /*
 world.afterEvents.entitySpawn.subscribe(event => {
@@ -265,9 +242,9 @@ system.beforeEvents.startup.subscribe((initEvent) => {
 
 // --- FUNCTIONS ---
 
-// ...
+// --- BOAT / MINECART PICKUP HANDLER
 
-// destroy boats and minecarts onehit while sneaking
+// Destroy boats and minecarts onehit while sneaking
 // TODO: move to dedicated handler class
 
 world.afterEvents.entityHitEntity.subscribe(event => {
@@ -281,10 +258,49 @@ world.afterEvents.entityHitEntity.subscribe(event => {
 
 // apply slow falling to trader when he spawns to prevent destruction of crops
 world.afterEvents.entitySpawn.subscribe(event => {
-  let entity = event.entity;
+  const entity = event.entity;
+  if(!entity.isValid) return;
   if(entity.typeId === 'minecraft:wandering_trader')
   {
     entity.addEffect("slow_falling", 20000000);
+  }
+});
+
+// --- VILLAGER ON-HIT HANDLER ---
+
+// prevents players accidentally hitting villagers, unless they crouch
+// pushes villagers instead to allow moving them more easily
+// TODO: move to dedicated handler class
+
+const s_pushCooldown = 12;
+const s_pushForce = 0.6;
+const s_pushForceVert = 0.3;
+
+world.beforeEvents.entityHurt.subscribe(event => {
+  const damaging = event.damageSource.damagingEntity;
+  const damaged = event.hurtEntity;
+  if(damaging && damaging.typeId === 'minecraft:player' && damaged.typeId.startsWith('minecraft:villager'))
+  {
+    if(!damaging.isSneaking)
+    {
+      event.cancel = true;
+      var impulse = new Vector3(damaging.getViewDirection());
+      impulse.normalize();
+      impulse.scale(s_pushForce);
+      impulse.y = s_pushForceVert;
+      if(!damaged.pushOnCooldown)
+      {
+        damaged.pushOnCooldown = true;
+        system.runTimeout(() => {
+          if(!damaged.isValid) return;
+          damaged.applyImpulse(impulse);
+        });
+        system.runTimeout(() => {
+          if(!damaged.isValid) return;
+          damaged.pushOnCooldown = false;
+        }, s_pushCooldown);
+      }
+    }
   }
 });
 

@@ -10,7 +10,7 @@
     "input": "minecraft:netherrack",
     "output":
     {
-      "item": "minecraft:nether_brick",
+      "item": "minecraft:netherbrick",
       "count": 1
     }
   }

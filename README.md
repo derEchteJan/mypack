@@ -40,9 +40,10 @@ in `behaviour_pack/scripts/main.js` change debug mode to true: `utils.debug = tr
 
 **Problems:**
 
- - Fix spears again by removing custom one ✅ (renamed to mypack:spear)
  - Use new Pack Settings for features if possible -- ⚠️ dont work in current game version
  - Fix render issue with kennel (floor underneath is invisible after version increase)
+ - Fix block/item translations (use itemStack.translationKey, tba for setRawLore)
+ - Finish up spezi bocks, recipes and add cola
 
 **Features:**
 

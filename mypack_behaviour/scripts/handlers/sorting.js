@@ -13,6 +13,7 @@ import {
 } from "@minecraft/server";
 
 import { log, log_err, chat } from '../logging.js'
+import utils from '../utils.js'
 
 
 // --- DATA TYPES ---
@@ -121,15 +122,9 @@ export default class Sorting {
      */
     TransferToContainers(player, origin, deposit) {
         if (!player) return;
-
         const dimension = player.dimension;
-        
         var didTransferAny = false;
-
-        
-
         var range = this.GetRange(origin);
-
         var containerBlocks = this.GetContainersInRange(range, dimension);
         for (var containerBlock of containerBlocks)
         {
@@ -144,16 +139,16 @@ export default class Sorting {
             this.TransferBeginMessage(player, deposit);
             if(deposit)
             {
-                this.PlayDepositSound(player);
+                this.PlayDepositSound(player, origin);
             }
             else
             {
-                this.PlayTakeSound(player);
+                this.PlayTakeSound(player, origin);
             }
         }
         else
         {
-            this.PlayNoTransferSound(player);
+            this.PlayNoTransferSound(player, origin);
         }
     }
 
@@ -216,7 +211,7 @@ export default class Sorting {
             includeTypes: this.m_containerBlockTypes
         }
 
-        var blockList = dimension.getBlocks(searchVolume, searchFilter, /*allowUnloadedChunks:*/ false);
+        var blockList = dimension.getBlocks(searchVolume, searchFilter, /*allowUnloadedChunks:*/ true);
         var blockIterator = blockList.getBlockLocationIterator();
 
         var count = 0;
@@ -256,17 +251,17 @@ export default class Sorting {
                 var key = stack.typeId;
                 var value = results.get(key);
                 if(value)
-                    results.set(key, results.get(key) + stack.amount);
+                    results.set(key, { amount: results.get(key) + stack.amount, localizationKey: stack.localizationKey });
                 else
-                    results.set(key, stack.amount);
+                    results.set(key, { amount: stack.amount, localizationKey: stack.localizationKey });
             }
         }
 
         // filter by amount decending
         if(sorted === true)
-            results = new Map([...results].sort((lhs, rhs) => { return rhs[1] - lhs[1]; }));
+            results = new Map([...results].sort((lhs, rhs) => { return rhs[1].amount - lhs[1].amount; }));
         if(sorted === false)
-            results = new Map([...results].sort((lhs, rhs) => { return lhs[1] - rhs[1]; }));
+            results = new Map([...results].sort((lhs, rhs) => { return lhs[1].amount - rhs[1].amount; }));
 
         return results;
     }
@@ -426,7 +421,7 @@ export default class Sorting {
 
                     //chat("taken " + iItem.typeId + " (" + takenAmount + "x)");
 
-                    this.TransferMessage(player, iItem.typeId, takenAmount, iItem.localizationKey);
+                    this.TransferMessage(player, iItem.localizationKey, takenAmount);
                 }
             }
         }
@@ -508,7 +503,7 @@ export default class Sorting {
                     }
 
                     if(player)
-                        this.TransferMessage(player, iItem.typeId, -1 * takenAmount, iItem.localizationKey);
+                        this.TransferMessage(player, iItem.localizationKey, -1 * takenAmount, iItem.localizationKey);
 
                     result = true;
                 }
@@ -651,10 +646,9 @@ export default class Sorting {
      * @param {Vector3 | null} location optional location to eminate from
      */
     PlayDepositSound(player, location) {
-        var options = null;
-        if(location)
+        var options =
         {
-            options.location = location;
+            location: location
         };
         player.playSound("random.pop2", options);
     }
@@ -712,9 +706,8 @@ export default class Sorting {
     TransferMessage(player, itemId,  amount)
     {
         var colorToken = amount > 0 ? "§3" : "§c";
-        var translationId = this.GetItemTranslationKey(itemId);
         this.m_message.rawtext.push({ text: "§7 - " });
-        this.m_message.rawtext.push({ translate: translationId });
+        this.m_message.rawtext.push({ translate: itemId });
         this.m_message.rawtext.push({ text: " " + colorToken + amount + "x§r\n" });
     }
 
@@ -731,13 +724,14 @@ export default class Sorting {
     /**
      * Sends tally result chat message to given player
      * @param {Player} player message target
-     * @param {Map<string,number>} map tally data, a map of itemIds <-> total amounts
+     * @param {Map<string, { amount: number, localizationKey: string }>} map tally data, a map of itemIds <-> { amount, locId }
      * @see Sorting.TallyItems
      */
     TallyMessage(player, map)
     {
-        map.forEach((amount, itemId) => {
-            var translationId = this.GetItemTranslationKey(itemId);
+        map.forEach((value, key) => {
+            const amount = value.amount;
+            const translationId = value.localizationKey;
             const rawMessage = { rawtext: [ { text: "§7 - " }, { translate: translationId }, { text: "§r§3 x" + amount + "§r" } ] };
             player.sendMessage(rawMessage);
         });
@@ -760,20 +754,6 @@ export default class Sorting {
             (player ? player : world).sendMessage(this.m_message);
         }
         this.m_message = null;
-    }
-
-    /**
-     * Translates typeId to translationId e.g. for raw message translate
-     * TODO: this doesnt work properly for some item types, find out why and fix it
-     * @param {string} itemId item typeId
-     * @returns {string}
-     */
-    GetItemTranslationKey(itemId)
-    {
-        // TODO: move to utils tr()
-        var translationId = (itemId.startsWith("minecraft:") ? itemId.substring("minecraft:".length) : itemId);
-        translationId = "tile." + translationId + ".name";
-        return translationId;
     }
 
     /** 
@@ -806,7 +786,7 @@ export default class Sorting {
         p4.y += 0.5;
 
         var molang = new MolangVariableMap();
-        molang.setColorRGB('variable.color', { red: 0.6, green: 0.4, blue: 1.0 });
+        molang.setColorRGB('variable.color', { red: 0, green: 0xAA/0xFF, blue: 0xAA/0xFF }); // TODO: move to utils if reuse required
 
         dimension.spawnParticle(particleType, p1, molang);
         dimension.spawnParticle(particleType, p2, molang);
