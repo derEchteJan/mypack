@@ -9,7 +9,8 @@ import {
     Player,
     Container,
     BlockInventoryComponent,
-    MolangVariableMap
+    MolangVariableMap,
+    ItemPotionComponent 
 } from "@minecraft/server";
 
 import { log, log_err, chat } from '../logging.js'
@@ -38,6 +39,8 @@ class ContainerBlock
 
 // --- SUBCLASSES ---
 
+var s_predTally = null; // TODO: proper bind doesnt work
+
 class Predicates
 {
     //sorting = new Sorting();
@@ -52,9 +55,10 @@ class Predicates
 
     /**
      * Sorts by max stack size descending
-     * @param {ItemStack | null} lhs
-     * @param {ItemStack | null} rhs
-     * @returns {boolean}
+     * @param {ItemStack | null} lhs left hand item
+     * @param {ItemStack | null} rhs right hand item
+     * @param {Container} container reference to the container
+     * @returns {boolean} in sorted order
      */
     stackSizeDesc(lhs, rhs)
     {
@@ -71,7 +75,9 @@ class Predicates
     totalAmountDesc(container)
     {
         var tally = this.sorting.TallyItems(container, true);
-        return this.byWeighting(tally);
+        s_predTally = tally;
+        //chat("tally set");
+        return this.byWeighting();
     }
 
     /**
@@ -79,13 +85,16 @@ class Predicates
      * @param {Map<string,number>} map map of itemIds to sort weighting, e.g. from Sorting::TallyItems
      * @returns {(lhs: ItemStack | null, rhs: ItemStack | null) => boolean} predicate
      */
-    byWeighting(map)
+    byWeighting()
     {
-        return (lhs, rhs) => {                                  // sort order:
+        return (lhs, rhs) => {                            // sort order:
             if(lhs === undefined) return false;                 // empty slot: to back
             if(rhs === undefined) return true;
-            var amountL = map.get(lhs.typeId);
-            var amountR = map.get(rhs.typeId)
+            var tally = s_predTally;
+            var amountL = tally.get(lhs.typeId).amount;
+            var amountR = tally.get(rhs.typeId).amount;
+            if(!amountL) chat("error");
+            if(!amountR) chat("error");
             if(!amountL) return false;                          // types not in map: to back
             if(!amountR) return true;
             if(amountL !== amountR) return amountL > amountR;   // higher total amount per type to front
@@ -237,7 +246,7 @@ export default class Sorting {
      * and returns result of a map consisitng of itemIds <-> total amounts
      * @param {Container} container subject
      * @param {boolean | null} sorted optional, sort by total amount?, true = desc, false = asc
-     * @returns { Map<string,number> }
+     * @returns { Map<itemId: stirng, { amount: int, localizationKey: string }> }
      */
     TallyItems(container, sorted)
     {
@@ -288,7 +297,7 @@ export default class Sorting {
                     if(ii === i) continue;
                     var otherStack = container.getItem(ii);
                     if(!otherStack) continue;
-                    if(!otherStack.isStackableWith(stack)) continue;
+                    if(!this.IsStackableWith(otherStack, stack)) continue;
 
                     var transferAmount = capLeft;
                     if(transferAmount > otherStack.amount) transferAmount = otherStack.amount;
@@ -335,9 +344,8 @@ export default class Sorting {
      * Sorts container inventory by given predicate
      * @param {Container} container container to be sorted
      * @param {(lhs: ItemStack | null, rhs: ItemStack | null) => boolean} predicate should return false if lhs and rhs should be swapped in their order
-     * @param {Player | null} player actor for feedback, optional
      */
-    SortContainerBy(container, predicate, player)
+    SortContainerBy(container, predicate)
     {
         const slots = container.size;
         for(var repeats = 0; repeats < slots; repeats++)
@@ -361,6 +369,7 @@ export default class Sorting {
     // --- PRIVATE METHODS ---
 
     /** PRIVATE METHOD
+     * TODO: REUSE DepositContainerToContainer reversed, with optional param "top up only"
      * 
      * Transfers items from given container to the players
      * inventory if it already contains a non-full stack of the
@@ -388,12 +397,10 @@ export default class Sorting {
                 var countLeft = iItem.maxAmount - iItem.amount;
                 var takenAmount = 0;
 
-                //chat("trying to take to " + iItem.typeId);
-
                 for (var ci = 0; ci < container.size && countLeft > 0; ci++) {
                     var cItem = container.getItem(ci);
 
-                    if (cItem && cItem.typeId === iItem.typeId && cItem.isStackableWith(iItem)) {
+                    if (cItem && this.IsStackableWith(cItem, iItem)) {
                         var subtractAmount = cItem.amount;
                         if (subtractAmount > countLeft) subtractAmount = countLeft;
 
@@ -418,8 +425,6 @@ export default class Sorting {
                     newIItem.amount = iItem.maxAmount - countLeft;
                     inventory.setItem(ii, newIItem);
                     result = true;
-
-                    //chat("taken " + iItem.typeId + " (" + takenAmount + "x)");
 
                     this.TransferMessage(player, iItem.localizationKey, takenAmount);
                 }
@@ -455,14 +460,20 @@ export default class Sorting {
         for (var ii = 0; ii < source.size; ii++) {
             var iItem = source.getItem(ii);
 
+            // Iterate items in source
+
             if (iItem && iItem.isStackable) {
 
                 var countLeft = iItem.amount;
                 var takenAmount = 0;
+                var stackableFound = false;
+
+                // Top-up existing stacks stackable with item
 
                 for (var ci = 0; ci < dest.size && countLeft > 0; ci++) {
                     var cItem = dest.getItem(ci);
-                    if (cItem && cItem.typeId === iItem.typeId && cItem.isStackableWith(iItem)) {
+                    if (cItem && this.IsStackableWith(cItem, iItem)) {
+                        stackableFound = true;
                         var subtractAmount = countLeft;
                         if (subtractAmount > cItem.maxAmount - cItem.amount) subtractAmount = cItem.maxAmount - cItem.amount;
 
@@ -476,9 +487,9 @@ export default class Sorting {
                     }
                 }
 
-                // deposit remainder into free slot
+                // Deposit remainder into free slot
 
-                if (takenAmount > 0 && countLeft > 0) {
+                if (countLeft > 0 && stackableFound) {
                     for (var ci = 0; ci < dest.size && countLeft > 0; ci++) {
                         var cItem = dest.getItem(ci);
                         if (!cItem) {
@@ -511,6 +522,26 @@ export default class Sorting {
         }
 
         return result;
+    }
+
+    /**
+     * Extended check if 2 ItemStacks are stackable
+     * @param {ItemStack} lhs first item
+     * @param {ItemStack} rhs other item
+     */
+    IsStackableWith(lhs, rhs)
+    {
+        if(lhs.typeId !== rhs.typeId) return false;
+        var lp = lhs.getComponent(ItemPotionComponent.componentId);
+        var rp = rhs.getComponent(ItemPotionComponent.componentId);
+        if(lp && rp)
+        {
+            // For potions instead isStackableWith comparing the itemPotionComponent values is required
+            // because the game code considers different potions as stackable, thus the item transfer code can potentially
+            // overwrite potions with potions of different type
+            return lp.potionDeliveryType === rp.potionDeliveryType && lp.potionEffectType == rp.potionEffectType;
+        }
+        return lhs.isStackableWith(rhs);
     }
 
     /** PRIVATE METHOD
@@ -724,7 +755,7 @@ export default class Sorting {
     /**
      * Sends tally result chat message to given player
      * @param {Player} player message target
-     * @param {Map<string, { amount: number, localizationKey: string }>} map tally data, a map of itemIds <-> { amount, locId }
+     * @param {Map<itemId: string, { amount: number, localizationKey: string }>} map tally data, a map of itemIds <-> { amount, locId }
      * @see Sorting.TallyItems
      */
     TallyMessage(player, map)

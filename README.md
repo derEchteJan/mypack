@@ -44,6 +44,9 @@ in `behaviour_pack/scripts/main.js` change debug mode to true: `utils.debug = tr
  - Fix render issue with kennel (floor underneath is invisible after version increase)
  - Fix block/item translations (use itemStack.translationKey, tba for setRawLore)
  - Finish up spezi bocks, recipes and add cola
+ - vacuum when item in inventory
+ - potions get sorted and override other potions, quarz also bugged out afters deposit
+ - deposit only fills successive free slots if they are after the initial item, should iterate from the start again
 
 **Features:**
 

@@ -62,7 +62,6 @@ function OnBeforeInteract(event, params)
 {
     if(event.itemStack && event.itemStack.typeId === 'mypack:sort_rod')
     {
-        
         const component = event.itemStack.getComponent('mypack:sort_rod_component');
         if(component)
         {
@@ -70,7 +69,6 @@ function OnBeforeInteract(event, params)
             system.runTimeout(() => {
                 SortRodComponent.OnUseOn(event.player, event.block);
             });
-
         }
     }
 }
@@ -147,14 +145,10 @@ export default class SortRodComponent {
     static Sort(container, block, player)
     {
         const sorting = SortRodComponent.s_sorting;
-
         sorting.CompactItems(container);
-
-        var tally = sorting.TallyItems(container, true);
-        sorting.SortContainerBy(container, sorting.predicates.byWeighting(tally));
-
+        sorting.SortContainerBy(container, sorting.predicates.totalAmountDesc(container));
         sorting.HighlightContainer(block);
-        player.sendMessage({ rawtext: [ { text: "§7" }, { translate: "mypack:sorted_container" }, { text: "§7r" } ] });
+        player.sendMessage({ rawtext: [ { text: "§7" }, { translate: "mypack:sorted_container" }, { text: "§7§r" } ] });
     }
 
     /**
