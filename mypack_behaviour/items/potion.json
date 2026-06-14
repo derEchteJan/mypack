@@ -9,7 +9,8 @@
     // fuck this framework seriously, this shit is documented nowhere
     "components": {
       "minecraft:use_duration": 16,
-      "minecraft:max_stack_size": 16
+      "minecraft:max_stack_size": 16,
+      "minecraft:stacked_by_data": false
     }
   }
 }

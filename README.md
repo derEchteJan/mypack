@@ -45,8 +45,12 @@ in `behaviour_pack/scripts/main.js` change debug mode to true: `utils.debug = tr
  - Fix block/item translations (use itemStack.translationKey, tba for setRawLore)
  - Finish up spezi bocks, recipes and add cola
  - vacuum when item in inventory
- - potions get sorted and override other potions, quarz also bugged out afters deposit
+ - potions get sorted and override other potions ✅, quarz also bugged out afters deposit (probs unloaded chunk problem, was fixed)
  - deposit only fills successive free slots if they are after the initial item, should iterate from the start again
+ - sort rod sort mode (compact + sort) doesnt work properly. Predicates probably dont work properly
+ - some messages arent sent to specific players
+ - shared chest crafting recipe locked on oak planks specifically
+ - verwerter block
 
 **Features:**
 

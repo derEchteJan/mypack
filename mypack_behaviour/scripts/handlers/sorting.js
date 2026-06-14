@@ -54,54 +54,69 @@ class Predicates
     }
 
     /**
+     * Sorts in alphabetical order, then stack size
+     * @param {ItemStack | null} lhs left hand item
+     * @param {ItemStack | null} rhs right hand item
+     * @returns {boolean} in sorted order
+     */
+    alphabetical(lhs, rhs)
+    {
+        if(!lhs) return false;
+        if(!rhs) return true;
+        const lc = lhs.typeId.localeCompare(rhs.typeId);
+        if(lc != 0) return lc < 0;
+        else return lhs.amount > rhs.amount;
+    }
+
+    /**
      * Sorts by max stack size descending
      * @param {ItemStack | null} lhs left hand item
      * @param {ItemStack | null} rhs right hand item
-     * @param {Container} container reference to the container
      * @returns {boolean} in sorted order
      */
     stackSizeDesc(lhs, rhs)
     {
-        if(lhs === undefined) return false;
-        if(rhs === undefined) return true;
+        if(!lhs) return false;
+        if(!rhs) return true;
         return lhs.maxAmount >= rhs.maxAmount;
     }
 
     /**
-     * Rturns predicate that sorts by total item amount descending
+     * RETURNS PREDICATE that sorts by total item amount descending, needs container argument to build tally
      * @param {Container} container
      * @returns {(lhs: ItemStack | null, rhs: ItemStack | null) => boolean}
      */
     totalAmountDesc(container)
     {
+        if(!container)
+        {
+            log_err("totalAmountDesc: container is null");
+            return null;
+        }
         var tally = this.sorting.TallyItems(container, true);
         s_predTally = tally;
-        //chat("tally set");
-        return this.byWeighting();
+        return this.byWeighting;
     }
 
     /**
-     * Returns a predicate for a given map of itemIds to weightings
-     * @param {Map<string,number>} map map of itemIds to sort weighting, e.g. from Sorting::TallyItems
-     * @returns {(lhs: ItemStack | null, rhs: ItemStack | null) => boolean} predicate
+     * Sorts by total amount of given item in container (call totalAmountDesc to obtain)
+     * @param {ItemStack | null} lhs left hand item
+     * @param {ItemStack | null} rhs right hand item
+     * @returns {boolean} in sorted order
      */
-    byWeighting()
+    byWeighting(lhs, rhs)
     {
-        return (lhs, rhs) => {                            // sort order:
-            if(lhs === undefined) return false;                 // empty slot: to back
-            if(rhs === undefined) return true;
-            var tally = s_predTally;
-            var amountL = tally.get(lhs.typeId).amount;
-            var amountR = tally.get(rhs.typeId).amount;
-            if(!amountL) chat("error");
-            if(!amountR) chat("error");
-            if(!amountL) return false;                          // types not in map: to back
-            if(!amountR) return true;
-            if(amountL !== amountR) return amountL > amountR;   // higher total amount per type to front
-            if(lhs.typeId === rhs.typeId) 
-                return lhs.amount > rhs.amount;                 // higher amount within same type to front
-            return lhs.typeId.localeCompare(rhs.typeId) < 0;    // alphabetical ascending
-        };
+        if(!lhs) return false;                              // empty slot: to back
+        if(!rhs) return true;
+        var tally = s_predTally;
+        var amountL = tally.get(lhs.typeId).amount;
+        var amountR = tally.get(rhs.typeId).amount;
+        if(!amountL) return false;                          // types not in map: to back
+        if(!amountR) return true;
+        if(amountL !== amountR) return amountL > amountR;   // higher total amount per type to front
+        if(lhs.typeId === rhs.typeId) 
+            return lhs.amount > rhs.amount;                 // higher amount within same type to front
+        return lhs.typeId.localeCompare(rhs.typeId) < 0;    // alphabetical ascending
     }
 }
 
@@ -260,7 +275,7 @@ export default class Sorting {
                 var key = stack.typeId;
                 var value = results.get(key);
                 if(value)
-                    results.set(key, { amount: results.get(key) + stack.amount, localizationKey: stack.localizationKey });
+                    results.set(key, { amount: results.get(key).amount + stack.amount, localizationKey: stack.localizationKey });
                 else
                     results.set(key, { amount: stack.amount, localizationKey: stack.localizationKey });
             }

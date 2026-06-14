@@ -52,12 +52,11 @@ export default class SorterComponent {
      * @param {CustomComponentParameters} params 
      */
     onPlace(event, params)
-    {   
+    {
         const sorting = this.m_sorting;
-
         sorting.HighlightSortingRange(event.block);
-
-        var closestPlayer = event.dimension.getPlayers({ closest: 1 }).at(0);
+        const closestPlayer = event.dimension.getPlayers({ closest: 1, location: event.block.location }).at(0);
+        if(!closestPlayer || !closestPlayer.isValid) return;
         sorting.ListContainersInSortingRange(event.block, closestPlayer);
     }
 
